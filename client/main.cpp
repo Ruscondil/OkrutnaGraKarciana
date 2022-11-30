@@ -41,14 +41,14 @@ int main(int argc, char **argv)
     if (sock == -1)
         error(1, errno, "socket failed");
 
-    int poll1 = epoll_create1(0);
+    int epollFd = epoll_create1(0);
 
-    epoll_event poll2;
-    poll2.events = EPOLLIN;
-    poll2.data.u64 = 692137420;
-    epoll_ctl(poll1, EPOLL_CTL_ADD, STDIN_FILENO, &poll2);
-    poll2.data.u64 = sock;
-    epoll_ctl(poll1, EPOLL_CTL_ADD, sock, &poll2);
+    epoll_event epollevent;
+    epollevent.events = EPOLLIN;
+    epollevent.data.u64 = 692137420;
+    epoll_ctl(epollFd, EPOLL_CTL_ADD, STDIN_FILENO, &epollevent);
+    epollevent.data.u64 = sock;
+    epoll_ctl(epollFd, EPOLL_CTL_ADD, sock, &epollevent);
 
     // attept to connect
     res = connect(sock, resolved->ai_addr, resolved->ai_addrlen);
@@ -60,8 +60,8 @@ int main(int argc, char **argv)
 
     while (true)
     {
-        int epollwait = epoll_wait(poll1, &poll2, 1, -1);
-        if (poll2.events & EPOLLIN && poll2.data.u64 == 692137420)
+        int epollwait = epoll_wait(epollFd, &epollevent, 1, -1);
+        if (epollevent.events & EPOLLIN && epollevent.data.u64 == 692137420)
         {
             // read from stdin, write to socket
             ssize_t bufsize = 255, received;
@@ -70,13 +70,13 @@ int main(int argc, char **argv)
             if (received <= 0)
             {
                 shutdown(sock, SHUT_RDWR);
-                epoll_ctl(poll1, EPOLL_CTL_DEL, STDIN_FILENO, &poll2);
+                epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
                 close(sock);
                 exit(0);
             }
             writeData(sock, buffer, received);
         }
-        else if (poll2.events & EPOLLIN && poll2.data.u64 == sock)
+        else if (epollevent.events & EPOLLIN && epollevent.data.u64 == sock)
         {
             // read from socket, write to stdout
             ssize_t bufsize = 255, received;
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
             if (received <= 0)
             {
                 shutdown(sock, SHUT_RDWR);
-                epoll_ctl(poll1, EPOLL_CTL_DEL, sock, &poll2);
+                epoll_ctl(epollFd, EPOLL_CTL_DEL, sock, &epollevent);
                 close(sock);
                 exit(0);
             }

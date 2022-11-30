@@ -105,15 +105,24 @@ public:
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc == 1)
+    {
+        auto port = readPort("7777");
+    }
+    else if (argc != 2)
+    {
         error(1, 0, "Need 1 arg (port)");
-    auto port = readPort(argv[1]);
+    }
+    else
+    {
+        auto port = readPort(argv[1]);
+    }
 
     servFd = socket(AF_INET, SOCK_STREAM, 0);
     if (servFd == -1)
         error(1, errno, "socket failed");
 
-    signal(SIGINT, ctrl_c);
+    signal(SIGINT, ctrl_c); // Przechwycenie ctrl+c
     signal(SIGPIPE, SIG_IGN);
 
     setReuseAddr(servFd);
