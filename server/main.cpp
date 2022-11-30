@@ -10,6 +10,9 @@
 #include <sys/epoll.h>
 #include <unordered_set>
 #include <signal.h>
+#include <iostream>
+
+using namespace std;
 
 class Client;
 
@@ -41,7 +44,7 @@ public:
         epoll_event ee{EPOLLIN | EPOLLRDHUP, {.ptr = this}};
         epoll_ctl(epollFd, EPOLL_CTL_ADD, _fd, &ee);
     }
-    virtual ~Client()
+    virtual ~Client() // destuktor
     {
         epoll_ctl(epollFd, EPOLL_CTL_DEL, _fd, nullptr);
         shutdown(_fd, SHUT_RDWR);
@@ -105,18 +108,13 @@ public:
 
 int main(int argc, char **argv)
 {
-    if (argc == 1)
-    {
-        auto port = readPort("7777");
-    }
-    else if (argc != 2)
+
+    if (argc != 2)
     {
         error(1, 0, "Need 1 arg (port)");
-    }
-    else
-    {
-        auto port = readPort(argv[1]);
-    }
+    } // TODO dodać default port
+
+    auto port = readPort(argv[1]);
 
     servFd = socket(AF_INET, SOCK_STREAM, 0);
     if (servFd == -1)
@@ -148,6 +146,7 @@ int main(int argc, char **argv)
             error(0, errno, "epoll_wait failed");
             ctrl_c(SIGINT);
         }
+        cout << ee.data.ptr << " Event:" << ee.events << endl;
         ((Handler *)ee.data.ptr)->handleEvent(ee.events);
     }
 }

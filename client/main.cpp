@@ -69,6 +69,7 @@ int main(int argc, char **argv)
             received = readData(0, buffer, bufsize);
             if (received <= 0)
             {
+                printf("Connection lost\n");
                 shutdown(sock, SHUT_RDWR);
                 epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
                 close(sock);
@@ -84,6 +85,7 @@ int main(int argc, char **argv)
             received = readData(sock, buffer, bufsize);
             if (received <= 0)
             {
+                printf("Connection lost\n");
                 shutdown(sock, SHUT_RDWR);
                 epoll_ctl(epollFd, EPOLL_CTL_DEL, sock, &epollevent);
                 close(sock);
