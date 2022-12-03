@@ -1,13 +1,17 @@
-#include <cstdlib>
+
 #include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <errno.h>
 #include <error.h>
-#include <netdb.h>
-#include <thread>
 #include <sys/epoll.h>
 #include <poll.h>
+#include <iostream>
+
+#include "connection.h"
+
+//#include <cstdlib>
+//#include <netinet/in.h>
+//#include <netdb.h>
+//#include <thread>
 
 ssize_t readData(int fd, char *buffer, ssize_t buffsize)
 {
@@ -28,35 +32,26 @@ void writeData(int fd, char *buffer, ssize_t count)
 
 int main(int argc, char **argv)
 {
-    if (argc != 3)
+    ServerConnection server;
+    if (argc == 3)
+    {
+        server.setServerAddress(argv[1], argv[2]);
+    }
+    else if (argc != 1)
+    {
         error(1, 0, "Need 2 args");
-    // Resolve arguments to IPv4 address with a port number
-    addrinfo *resolved, hints = {.ai_flags = 0, .ai_family = AF_INET, .ai_socktype = SOCK_STREAM}; // TCP
-    int res = getaddrinfo(argv[1], argv[2], &hints, &resolved);
-    if (res || !resolved)
-        error(1, 0, "getaddrinfo: %s", gai_strerror(res));
+    }
 
-    // create socket
-    int sock = socket(resolved->ai_family, resolved->ai_socktype, 0);
-    if (sock == -1)
-        error(1, errno, "socket failed");
+    // Resolve arguments to IPv4 address with a port number
+    server.serverConnect();
 
     int epollFd = epoll_create1(0);
-
     epoll_event epollevent;
     epollevent.events = EPOLLIN;
     epollevent.data.u64 = 692137420;
     epoll_ctl(epollFd, EPOLL_CTL_ADD, STDIN_FILENO, &epollevent);
-    epollevent.data.u64 = sock;
-    epoll_ctl(epollFd, EPOLL_CTL_ADD, sock, &epollevent);
-
-    // attept to connect
-    res = connect(sock, resolved->ai_addr, resolved->ai_addrlen);
-    if (res)
-        error(1, errno, "connect failed");
-
-    // free memory
-    freeaddrinfo(resolved);
+    epollevent.data.u64 = server.getSocket();
+    epoll_ctl(epollFd, EPOLL_CTL_ADD, server.getSocket(), &epollevent);
 
     while (true)
     {
@@ -70,25 +65,25 @@ int main(int argc, char **argv)
             if (received <= 0)
             {
                 printf("Connection lost\n");
-                shutdown(sock, SHUT_RDWR);
+                shutdown(server.getSocket(), SHUT_RDWR);
                 epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
-                close(sock);
+                close(server.getSocket());
                 exit(0);
             }
-            writeData(sock, buffer, received);
+            writeData(server.getSocket(), buffer, received);
         }
-        else if (epollevent.events & EPOLLIN && epollevent.data.u64 == sock)
+        else if (epollevent.events & EPOLLIN && epollevent.data.u64 == server.getSocket())
         {
             // read from socket, write to stdout
             ssize_t bufsize = 255, received;
             char buffer[bufsize];
-            received = readData(sock, buffer, bufsize);
+            received = readData(server.getSocket(), buffer, bufsize);
             if (received <= 0)
             {
                 printf("Connection lost\n");
-                shutdown(sock, SHUT_RDWR);
-                epoll_ctl(epollFd, EPOLL_CTL_DEL, sock, &epollevent);
-                close(sock);
+                shutdown(server.getSocket(), SHUT_RDWR);
+                epoll_ctl(epollFd, EPOLL_CTL_DEL, server.getSocket(), &epollevent);
+                close(server.getSocket());
                 exit(0);
             }
             writeData(1, buffer, received);
