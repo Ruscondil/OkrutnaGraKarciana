@@ -6,7 +6,7 @@
 #include <poll.h>
 #include <iostream>
 
-#include "connection.h"
+#include "connection.hpp"
 
 //#include <cstdlib>
 //#include <netinet/in.h>
@@ -56,6 +56,7 @@ int main(int argc, char **argv)
     while (true)
     {
         int epollwait = epoll_wait(epollFd, &epollevent, 1, -1);
+        std::cout << epollevent.data.ptr << " | " << epollevent.data.u64 << " Event:" << epollevent.events << std::endl;
         if (epollevent.events & EPOLLIN && epollevent.data.u64 == 692137420)
         {
             // read from stdin, write to socket

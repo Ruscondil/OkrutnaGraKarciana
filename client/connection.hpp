@@ -11,6 +11,7 @@ private:
 public:
     ServerConnection();
     ServerConnection(char *addr, char *port);
+    virtual ~ServerConnection();
     void setServerAddress(char *addr, char *port);
     void serverConnect();
     void serverConnect(char *addr, char *port);
