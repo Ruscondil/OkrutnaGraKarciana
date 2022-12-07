@@ -60,3 +60,20 @@ int ServerConnection::getSocket()
 {
     return _sock;
 }
+
+void Handler::registerNetEvent(std::string eventName)
+{
+    eventInfo[eventName] = true;
+}
+
+void Handler::eraseNetEvent(std::string eventName)
+{
+    eventInfo.erase(eventName);
+}
+
+bool Handler::doesEventExist(std::string eventName)
+{
+    if (eventInfo.find(eventName) == eventInfo.end())
+        return false;
+    return true;
+}
