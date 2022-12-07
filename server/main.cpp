@@ -54,7 +54,7 @@ int main(int argc, char **argv)
             error(0, errno, "epoll_wait failed");
             ctrl_c(SIGINT);
         }
-        std::cout << ee.data.ptr << " | " << ee.data.u64 << " Event:" << ee.events << std::endl;
+        // std::cout << ee.data.ptr << " | " << ee.data.u64 << " Event:" << ee.events << std::endl;
         ((Handler *)ee.data.ptr)->handleEvent(ee.events);
     }
 }

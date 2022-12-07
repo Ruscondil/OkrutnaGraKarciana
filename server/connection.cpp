@@ -1,10 +1,10 @@
 #include "connection.hpp"
 
-//#include <cstdlib>
-//#include <cstdio>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <netdb.h>
+// #include <cstdlib>
+// #include <cstdio>
+// #include <sys/socket.h>
+// #include <netinet/in.h>
+// #include <netdb.h>
 
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -53,6 +53,8 @@ Client::Client(int fd) : _fd(fd)
 {
     epoll_event ee{EPOLLIN | EPOLLRDHUP, {.ptr = this}};
     epoll_ctl(epollFd, EPOLL_CTL_ADD, _fd, &ee);
+    registerNetEvent("player_registerNickname");
+    registerNetEvent("test");
 }
 
 Client::~Client() // destuktor
@@ -64,14 +66,43 @@ Client::~Client() // destuktor
 
 int Client::fd() const { return _fd; }
 
+void Client::changeNickname(std::string nickname)
+{
+    _nickname = nickname;
+}
+
 void Client::handleEvent(uint32_t events)
 {
     if (events & EPOLLIN)
     {
-        char buffer[256];
+        char buffer[256] = "";
         ssize_t count = read(_fd, buffer, 256);
         if (count > 0)
-            sendToAllBut(_fd, buffer, count);
+        { // TODO deserializacja
+            std::string eventName = buffer;
+            if (doesEventExist(eventName))
+            {
+                if (eventName == "player_registerNickname")
+                {
+                    std::cout << "Wykonuję" << std::endl; // TODO usunąć
+                }
+                else
+                {
+                    std::cout << "NOT FOUND: Execute of event: " << eventName << std::endl;
+                }
+            }
+            else
+            { // TODO sprawdzanie globalnej mapy
+                if (doesEventExist(eventName))
+                {
+                }
+                else
+                {
+                    std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
+                    // remove();
+                }
+            }
+        }
         else
             events |= EPOLLERR;
     }
@@ -90,6 +121,31 @@ void Client::remove()
     printf("removing %d\n", _fd);
     clients.erase(this);
     delete this;
+}
+
+void Client::TriggerClientEvent(std::string eventName) // TODO dodać argumenty
+{
+    int count = 0;
+    char buffer[] = "ELO"; // TODO dodać serializacje i argumenty
+    if (count != ::write(_fd, buffer, count))
+        remove();
+}
+
+void Handler::registerNetEvent(std::string eventName)
+{
+    eventInfo[eventName] = true;
+}
+
+void Handler::eraseNetEvent(std::string eventName)
+{
+    eventInfo.erase(eventName);
+}
+
+bool Handler::doesEventExist(std::string eventName)
+{
+    if (eventInfo.find(eventName) == eventInfo.end())
+        return false;
+    return true;
 }
 
 void ServHandler::handleEvent(uint32_t events)
