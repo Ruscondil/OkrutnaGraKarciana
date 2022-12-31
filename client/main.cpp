@@ -12,7 +12,7 @@
 // #include <netinet/in.h>
 // #include <netdb.h>
 // #include <thread>
-
+// TODO dodać zamykaniee wszędzie deskryptorów
 ssize_t readData(int fd, char *buffer, ssize_t buffsize)
 {
     auto ret = read(fd, buffer, buffsize);
@@ -58,8 +58,8 @@ int main(int argc, char **argv)
 
     while (true)
     {
-        int epollwait = epoll_wait(epollFd, &epollevent, 1, -1);
-        // std::cout << epollevent.data.ptr << " | " << epollevent.data.u64 << " Event:" << epollevent.events << std::endl;
+        epoll_wait(epollFd, &epollevent, 1, -1);
+        std::cout << epollevent.data.ptr << " | " << &game << " | " << epollevent.data.u64 << " Event:" << epollevent.events << std::endl;
 
         if (epollevent.events & EPOLLIN && epollevent.data.u64 == 692137420)
         {
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            std::cout << "TEST" << std::endl;
+            // std::cout << "TEST" << std::endl;
             ((Handler *)epollevent.data.ptr)->handleEvent(epollevent.events);
         }
         /*  else if (epollevent.events & EPOLLIN && epollevent.data.u64 == game.getSocket())

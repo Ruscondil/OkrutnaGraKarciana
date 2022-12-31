@@ -1,5 +1,6 @@
 #pragma once
 #include "connection.hpp"
+#include "handler.hpp"
 
 class Game : public Handler, public ServerConnection
 {
@@ -16,6 +17,8 @@ private:
     };
 
 public:
+    Game();
+    static void test(std::string);
     virtual void handleEvent(uint32_t events) override;
     settings settings;
 };

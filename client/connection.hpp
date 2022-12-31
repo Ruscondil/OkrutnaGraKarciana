@@ -18,17 +18,3 @@ public:
     void serverConnect(char *addr, char *port);
     int getSocket();
 };
-
-class Handler
-{
-    std::map<std::string, bool> eventInfo;
-
-public:
-    virtual ~Handler()
-    {
-    }
-    virtual void handleEvent(uint32_t events) = 0;
-    bool doesEventExist(std::string eventName);
-    void registerNetEvent(std::string eventName);
-    void eraseNetEvent(std::string eventName);
-};

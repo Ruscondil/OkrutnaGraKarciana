@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "connection.hpp"
+#include "handler.hpp"
 
 #include <iostream>
 #include <sys/epoll.h> //epoll
@@ -14,34 +15,42 @@ void Game::handleEvent(uint32_t events)
         if (count > 0)
         { // TODO deserializacja
             std::string eventName = buffer;
-            if (doesEventExist(eventName))
+            std::string arguments = "TESTARGUMENT";
+            EventFunction callback = getNetEventCallback(eventName);
+            if (callback)
             {
-                if (eventName == "player_registerNickname")
-                {
-                    std::cout << "Wykonuję" << std::endl; // TODO usunąć
-                }
-                else
-                {
-                    std::cout << "NOT FOUND: Execute of event: " << eventName << std::endl;
-                }
+                callback(arguments);
             }
             else
             { // TODO sprawdzanie globalnej mapy
-                if (doesEventExist(eventName))
-                {
-                }
-                else
-                {
-                    std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
-                    // remove();
-                }
+                std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
             }
         }
-        else
+        else if (count <= 0)
+        {
             events |= EPOLLERR;
+            printf("Connection lost\n");
+            shutdown(getSocket(), SHUT_RDWR);
+            // epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
+            close(getSocket());
+            exit(0);
+        }
     }
     if (events & ~EPOLLIN)
     {
         // TODO
     }
+}
+
+Game::Game()
+{
+    registerNetEvent("ELO", test);
+    // registerNetEvent('receiveLeadboard');
+    // registerNetEvent('newRound');
+    // registerNetEvent('receiveFinishRoundInfo');
+}
+
+void Game::test(std::string a)
+{
+    std::cout << a << std::endl;
 }
