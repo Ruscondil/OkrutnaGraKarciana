@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sys/epoll.h> //epoll
 #include <unistd.h>    //read
-
+#include <functional>  //std::bind
 void Game::handleEvent(uint32_t events)
 {
     if (events & EPOLLIN)
@@ -44,7 +44,7 @@ void Game::handleEvent(uint32_t events)
 
 Game::Game()
 {
-    registerNetEvent("ELO", test);
+    registerNetEvent("TEST", std::bind(&Game::test, this, std::placeholders::_1));
     // registerNetEvent('receiveLeadboard');
     // registerNetEvent('newRound');
     // registerNetEvent('receiveFinishRoundInfo');

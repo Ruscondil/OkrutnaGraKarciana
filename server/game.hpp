@@ -34,4 +34,5 @@ public:
     void getReadyForConnection();
     void prepareServer();
     void closeServer();
+    void test(std ::string);
 };

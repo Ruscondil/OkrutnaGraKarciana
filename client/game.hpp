@@ -18,7 +18,7 @@ private:
 
 public:
     Game();
-    static void test(std::string);
+    void test(std::string);
     virtual void handleEvent(uint32_t events) override;
     settings settings;
 };

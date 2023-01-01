@@ -1,8 +1,9 @@
 #pragma once
 
 #include <map>
+#include <functional>
 
-typedef void (*EventFunction)(std::string);
+typedef std::function<void(std::string)> EventFunction;
 
 class Handler
 {

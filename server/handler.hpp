@@ -1,12 +1,14 @@
 #pragma once
 
 #include <map>
+#include <functional>
 
-typedef void (*EventFunction)(std::string);
+typedef std::function<void(std::string)> EventFunction;
 
 class Handler
 {
     std::map<std::string, EventFunction> eventInfo; // TODO będą sobie rozpakowywać funkcje już we wnętrzu
+
 public:
     virtual ~Handler()
     {

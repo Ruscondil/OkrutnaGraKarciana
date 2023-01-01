@@ -25,28 +25,16 @@ void Game::handleEvent(uint32_t events, int _fd)
         if (count > 0)
         { // TODO deserializacja
             std::string eventName = buffer;
-            // std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
-            if (true)
+            std::string arguments = "TEST";
+
+            EventFunction callback = getNetEventCallback(eventName);
+            if (callback)
             {
-                if (eventName == "player_registerNickname")
-                {
-                    std::cout << "Wykonuję" << std::endl; // TODO usunąć
-                }
-                else
-                {
-                    std::cout << "NOT FOUND: Execute of event: " << eventName << std::endl;
-                }
+                callback(arguments);
             }
             else
             { // TODO sprawdzanie globalnej mapy
-                if (true)
-                {
-                }
-                else
-                {
                     std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
-                    // remove();
-                }
             }
         }
         else
@@ -126,6 +114,7 @@ void Game::prepareServer()
     reserveSocket();
     setReuseAddr();
     getReadyForConnection();
+    registerNetEvent("testowanie", std::bind(&Game::test, this, std::placeholders::_1));
 }
 
 void Game::closeServer()
@@ -135,4 +124,10 @@ void Game::closeServer()
     close(_servFd);
     printf("Closing server\n");
     exit(0);
+}
+
+void Game::test(std::string arg)
+{
+    // std::cout << "CZEMU ZAWSZE SA PROBLEMY" << std::endl;
+    sendToAll((char *)arg.c_str());
 }
