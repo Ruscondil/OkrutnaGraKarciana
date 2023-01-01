@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <unistd.h>
+#include <functional>
 Game::settings::settings()
 {
     roundTimeSeconds = 90;
@@ -34,7 +35,7 @@ void Game::handleEvent(uint32_t events, int _fd)
             }
             else
             { // TODO sprawdzanie globalnej mapy
-                    std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
+                std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
             }
         }
         else
@@ -76,15 +77,14 @@ int Game::getSocket()
     return _servFd;
 }
 
-void Game::sendToAll(int fd, char *buffer, int count)
+void Game::sendToAll(char *buffer)
 {
     auto it = clients.begin();
     while (it != clients.end())
     {
         Client *client = *it;
         it++;
-        if (client->fd() != fd)
-            client->TriggerClientEvent(buffer); // TODO do poprawy
+        client->TriggerClientEvent(buffer); // TODO do poprawy
     }
 }
 
@@ -116,7 +116,7 @@ void Game::prepareServer()
     getReadyForConnection();
     registerNetEvent("testowanie", std::bind(&Game::test, this, std::placeholders::_1));
 }
-
+// TODO powywalać rzeczy do z sieci do osobnego pliku
 void Game::closeServer()
 {
     for (Client *client : clients)

@@ -25,7 +25,6 @@ Client::Client(int fd) : _fd(fd)
 Client::~Client() // destuktor
 {
     // epoll_ctl(epollFd, EPOLL_CTL_DEL, _fd, nullptr);
-    std::cout << "AAA " << _fd << std::endl;
     shutdown(_fd, SHUT_RDWR);
     close(_fd);
 }
@@ -76,9 +75,9 @@ void Client::handleEvent(uint32_t events, int _fd)
 void Client::TriggerClientEvent(std::string eventName) // TODO dodać argumenty
 {
     std::cout << "TRIGGER" << std::endl;
-    int count = 3;
-    char buffer[] = "ELO"; // TODO dodać serializacje i argumenty
-    if (count != ::write(_fd, buffer, count))
+    int count = eventName.length();
+    // char buffer[] = "ELO"; // TODO dodać serializacje i argumenty
+    if (count != ::write(_fd, (char *)eventName.c_str(), count))
     {
         _clientStatus = LOST;
     }
@@ -88,6 +87,6 @@ void Client::TriggerClientEvent(std::string eventName) // TODO dodać argumenty
 
 void Client::Test(std ::string eventName)
 {
-    std::cout << "EFDSSFAD" << std::endl;
+    std::cout << "TEST" << std::endl;
     // TriggerClientEvent(eventName);
 }

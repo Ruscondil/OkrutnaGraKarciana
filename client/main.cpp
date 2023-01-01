@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     while (true)
     {
         epoll_wait(epollFd, &epollevent, 1, -1);
-        std::cout << epollevent.data.ptr << " | " << &game << " | " << epollevent.data.u64 << " Event:" << epollevent.events << std::endl;
+        // std::cout << epollevent.data.ptr << " | " << &game << " | " << epollevent.data.u64 << " Event:" << epollevent.events << std::endl;
 
         if (epollevent.events & EPOLLIN && epollevent.data.u64 == 692137420)
         {

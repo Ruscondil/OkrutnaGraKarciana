@@ -29,7 +29,7 @@ public:
     void setReuseAddr(int sock);
     void setReuseAddr();
     int getSocket();
-    void sendToAll(int fd, char *buffer, int count);
+    void sendToAll(char *buffer);
     void setPort(char *txt);
     void getReadyForConnection();
     void prepareServer();
