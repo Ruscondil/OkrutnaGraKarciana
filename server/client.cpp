@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <signal.h>
 #include <iostream>
+#include <cstring> //TODO potem usunąc memcpy
 
 Client::Client(int fd) : _fd(fd)
 {
@@ -74,19 +75,15 @@ void Client::handleEvent(uint32_t events, int _fd)
 
 void Client::TriggerClientEvent(std::string eventName) // TODO dodać argumenty
 {
-    std::cout << "TRIGGER" << std::endl;
+    std::cout << "TRIGGER " << _fd << std::endl;
     int count = eventName.length();
-    // char buffer[] = "ELO"; // TODO dodać serializacje i argumenty
-    if (count != ::write(_fd, (char *)eventName.c_str(), count))
+
+    char test[256]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
+    memcpy(test, eventName.data(), eventName.size());
+    if (count != ::write(_fd, test, count))
     {
         _clientStatus = LOST;
     }
     // remove();
     // TODO zmienić status na niektywny
-}
-
-void Client::Test(std ::string eventName)
-{
-    std::cout << "TEST" << std::endl;
-    // TriggerClientEvent(eventName);
 }

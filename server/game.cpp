@@ -22,10 +22,12 @@ void Game::handleEvent(uint32_t events, int _fd)
     if (events & EPOLLIN)
     {
         char buffer[256] = "";
+
         ssize_t count = read(_fd, buffer, 256);
+        std::string s_buffer = std::string(buffer);
         if (count > 0)
         { // TODO deserializacja
-            std::string eventName = buffer;
+            std::string eventName = getEventName(s_buffer);
             std::string arguments = "TEST";
 
             EventFunction callback = getNetEventCallback(eventName);
@@ -77,7 +79,7 @@ int Game::getSocket()
     return _servFd;
 }
 
-void Game::sendToAll(char *buffer)
+void Game::sendToAll(std::string buffer)
 {
     auto it = clients.begin();
     while (it != clients.end())
@@ -128,6 +130,10 @@ void Game::closeServer()
 
 void Game::test(std::string arg)
 {
+    std::cout << "SIZE1 " << arg.size() << std::endl;
+    serializeInt(arg, 2137);
+    std::cout << "SIZE2 " << arg.size() << std::endl;
     // std::cout << "CZEMU ZAWSZE SA PROBLEMY" << std::endl;
-    sendToAll((char *)arg.c_str());
+
+    sendToAll(arg);
 }

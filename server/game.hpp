@@ -29,7 +29,7 @@ public:
     void setReuseAddr(int sock);
     void setReuseAddr();
     int getSocket();
-    void sendToAll(char *buffer);
+    void sendToAll(std::string buffer);
     void setPort(char *txt);
     void getReadyForConnection();
     void prepareServer();
