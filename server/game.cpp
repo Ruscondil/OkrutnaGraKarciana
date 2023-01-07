@@ -9,6 +9,26 @@
 #include <signal.h>
 #include <unistd.h>
 #include <functional>
+
+void printText(std::string text) // TODO usunać
+{
+    for (char c : text)
+    {
+        if (c == '\n')
+        {
+            std::cout << "\\n";
+        }
+        else if (c == '\r')
+        {
+            std::cout << "\\r";
+        }
+        else
+        {
+            std::cout << c;
+        }
+    }
+}
+
 Game::settings::settings()
 {
     roundTimeSeconds = 90;
