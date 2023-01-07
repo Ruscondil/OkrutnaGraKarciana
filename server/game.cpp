@@ -24,6 +24,15 @@ void Game::handleEvent(uint32_t events, int _fd)
         char buffer[256] = "";
 
         ssize_t count = read(_fd, buffer, 256);
+        if (count <= 0) // TODO do testów, zamienić na przenoszenie danego clienta w stan LOST
+        {
+            printf("Connection lost with %i\n", _fd);
+            shutdown(getSocket(), SHUT_RDWR);
+            // epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
+            close(getSocket());
+            exit(0);
+        }
+
         std::string s_buffer = std::string(buffer);
         if (count > 0)
         { // TODO deserializacja
