@@ -34,20 +34,20 @@ void Game::handleEvent(uint32_t events)
     {
         char buffer[256] = "";
         ssize_t count = read(getSocket(), buffer, 256); // TODO dowiedzieć się jak to wyciągnąć z
-
+        std::cout << "Count: " << count << std::endl;
         std::string s_buffer;
 
         // Resize the string to fit the buffer
         s_buffer.resize(count);
-
         // Copy the buffer data to the string
         memcpy(&s_buffer[0], buffer, count);
-
         if (count > 0)
         { // TODO deserializacja
+
+            // printText(s_buffer);
             std::string eventName = getEventName(s_buffer);
             std::string arguments = s_buffer;
-            std::cout << s_buffer << std::endl;
+            // printText(s_buffer);
             EventFunction callback = getNetEventCallback(eventName);
             if (callback)
             {
@@ -86,6 +86,7 @@ void Game::test(std::string a)
 {
     int test;
     std::string test2;
+    // printText(a);
     test = deserializeInt(a);
     test2 = deserializeString(a);
     std::cout << test << " | " << test2 << std::endl;

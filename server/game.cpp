@@ -165,6 +165,7 @@ void Game::test(std::string arg)
     serializeInt(buffer, 2137);
     serializeString(buffer, "floppa friday i soggota");
     std::cout << "SIZE2 " << buffer.size() << std::endl;
+    printText(buffer);
     // std::cout << "CZEMU ZAWSZE SA PROBLEMY" << std::endl;
 
     sendToAll(buffer);
