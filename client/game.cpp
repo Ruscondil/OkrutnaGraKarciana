@@ -85,6 +85,8 @@ Game::Game()
 void Game::test(std::string a)
 {
     int test;
+    std::string test2;
     test = deserializeInt(a);
-    std::cout << a << " | " << test << std::endl;
+    test2 = deserializeString(a);
+    std::cout << test << " | " << test2 << std::endl;
 }

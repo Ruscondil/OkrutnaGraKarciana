@@ -1,7 +1,7 @@
 #include "handler.hpp"
 #include <cstring>
 #include <arpa/inet.h>
-#include <iostream> //TODO usunąć potem, do cout
+
 void Handler::registerNetEvent(std::string eventName, EventFunction callback)
 {
     if (!getNetEventCallback(eventName))
@@ -33,17 +33,29 @@ EventFunction Handler::getNetEventCallback(std::string eventName)
     return 0;
 }
 
+void Handler::serializeEventName(std::string &buffer, std::string eventName)
+{
+    buffer.append(eventName + "\n");
+}
+
 void Handler::serializeInt(std::string &buffer, int value)
 {
     char data[4];
     value = htonl(value);
     memcpy(data, &value, 4);
-    buffer.append(std::string(data, 4) + '\r');
+    buffer.pop_back(); // usuwanie \n
+    buffer.append("\r" + std::string(data, 4) + "\n");
+}
+
+void Handler::serializeString(std::string &buffer, std::string value)
+{
+    buffer.pop_back(); // usuwanie \n
+    buffer.append("\r" + value + "\n");
 }
 
 int Handler::deserializeInt(std::string &buffer)
 {
-    // Get the data from the buffer
+    // Get the data from the buffer (skip the space preceding it)
     std::string data = buffer.substr(0, 4);
 
     // Convert the data back to an int
@@ -53,27 +65,32 @@ int Handler::deserializeInt(std::string &buffer)
     // Convert back to host byte order
     value = ntohl(value);
 
-    // Delete the space and data from the buffer
+    // Delete the /r and data from the buffer
     buffer.erase(0, 5);
 
     return value;
 }
 
-std::string Handler::getEventName(std::string &buffer)
+std::string Handler::deserializeString(std::string &buffer)
 {
-    std::string eventName;
+    std::string text;
     for (int i = 0; i < (int)buffer.size(); i++)
     {
-        if (buffer[i] == ' ')
+        if (buffer[i] == '\r' or buffer[i] == '\n')
         {
             buffer.erase(0, i + 1); // delete first word and space from buffer
-            return eventName;
+            return text;
         }
         else
         {
-            eventName += buffer[i];
+            text += buffer[i];
         }
     }
     buffer.clear(); // if there is no space in buffer, delete everything
-    return eventName;
+    return text;
+}
+
+std::string Handler::getEventName(std::string &buffer)
+{
+    return deserializeString(buffer);
 }

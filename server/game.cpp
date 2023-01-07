@@ -159,10 +159,13 @@ void Game::closeServer()
 
 void Game::test(std::string arg)
 {
-    std::cout << "SIZE1 " << arg.size() << std::endl;
-    serializeInt(arg, 2137);
-    std::cout << "SIZE2 " << arg.size() << std::endl;
+    std::string buffer;
+    serializeEventName(buffer, arg);
+    std::cout << "SIZE1 " << buffer.size() << std::endl;
+    serializeInt(buffer, 2137);
+    serializeString(buffer, "floppa friday i soggota");
+    std::cout << "SIZE2 " << buffer.size() << std::endl;
     // std::cout << "CZEMU ZAWSZE SA PROBLEMY" << std::endl;
 
-    sendToAll(arg);
+    sendToAll(buffer);
 }
