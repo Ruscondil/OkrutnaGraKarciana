@@ -7,7 +7,7 @@ typedef std::function<void(std::string)> EventFunction;
 
 class Handler
 {
-    std::map<std::string, EventFunction> eventInfo; // TODO będą sobie rozpakowywać funkcje już we wnętrzu
+    std::map<std::string, EventFunction> eventInfo;
 
 public:
     virtual ~Handler()
