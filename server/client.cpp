@@ -38,32 +38,7 @@ void Client::changeNickname(std::string nickname)
 }
 
 void Client::handleEvent(uint32_t events, int _fd)
-{ /*
-     if (events & EPOLLIN)
-     {
-         char buffer[256] = "";
-         ssize_t count = read(_fd, buffer, 256);
-         if (count > 0)
-         { // TODO deserializacja
-             std::string eventName = buffer;
-             std::string arguments = "TESTARGUMENTSERV";
-             EventFunction callback = getNetEventCallback(eventName);
-             if (callback)
-             {
-                 callback(arguments);
-             }
-             else
-             { // TODO sprawdzanie globalnej mapy
-                 std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
-             }
-         }
-         else
-             events |= EPOLLERR;
-     }
-     if (events & ~EPOLLIN)
-     {
-         _clientStatus = LOST;
-     }*/
+{
 }
 
 /* void Client::remove()
@@ -73,13 +48,17 @@ void Client::handleEvent(uint32_t events, int _fd)
     delete this;
 } */
 
-void Client::TriggerClientEvent(std::string eventName) // TODO dodać argumenty
+void Client::TriggerClientEvent(std::string eventName, std::string arguments)
 {
+    std::string message;
     std::cout << "TRIGGER " << _fd << std::endl;
-    int count = eventName.length();
+
+    message = eventName + arguments;
+
+    int count = message.length();
 
     char test[256]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
-    memcpy(test, eventName.data(), eventName.size());
+    memcpy(test, message.data(), message.size());
     if (count != ::write(_fd, test, count))
     {
         _clientStatus = LOST;

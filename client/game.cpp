@@ -91,3 +91,9 @@ void Game::test(std::string a)
     test2 = deserializeString(a);
     std::cout << test << " | " << test2 << std::endl;
 }
+
+void Game::startConnection(std::string buffer)
+{
+    int clientServerFd = deserializeInt(buffer);
+    std::cout << clientServerFd << std::endl;
+}

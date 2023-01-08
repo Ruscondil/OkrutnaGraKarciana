@@ -21,7 +21,7 @@ public:
     Client(int fd);
     virtual ~Client(); // destuktor
     int fd() const;
-    void TriggerClientEvent(std::string eventName);
+    void TriggerClientEvent(std::string eventName, std::string arguments);
     void changeNickname(std::string nickname);
     virtual void handleEvent(uint32_t events, int _fd) override;
 };

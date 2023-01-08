@@ -44,14 +44,14 @@ void Handler::serializeInt(std::string &buffer, int value)
     value = htonl(value);
     memcpy(data, &value, 4);
     if (buffer.size() > 0)
-    buffer.pop_back(); // usuwanie \n
+        buffer.pop_back(); // usuwanie \n
     buffer.append("\r" + std::string(data, 4) + "\n");
 }
 
 void Handler::serializeString(std::string &buffer, std::string value)
 {
     if (buffer.size() > 0)
-    buffer.pop_back(); // usuwanie \n
+        buffer.pop_back(); // usuwanie \n
     buffer.append("\r" + value + "\n");
 }
 

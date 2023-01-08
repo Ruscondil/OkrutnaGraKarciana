@@ -1,14 +1,12 @@
 #pragma once
 #include "client.hpp"
 #include "handler.hpp"
+#include "connection.hpp"
 
-#include <unordered_set>
-class Game : public Handler
+#include <map>
+class Game : public Handler, public connectionManager
 {
 private:
-    int _servFd;
-    uint16_t _port;
-    int _epollFd;
     struct settings
     {
         settings();
@@ -19,20 +17,13 @@ private:
         // TODO wektor wektorów czarnych kart i białych
     };
     settings settings;
-    std::unordered_set<Client *> clients;
+    std::map<int, Client *> clients;
 
 public:
+    Game();
     virtual void handleEvent(uint32_t events, int _fd) override;
+    void sendToAll(std::string eventName, std::string arguments);
     void newClient(int clientFd);
-
-    void reserveSocket();
-    void setReuseAddr(int sock);
-    void setReuseAddr();
-    int getSocket();
-    void sendToAll(std::string buffer);
-    void setPort(char *txt);
-    void getReadyForConnection();
-    void prepareServer();
-    void closeServer();
     void test(std ::string);
+    void closeServer();
 };

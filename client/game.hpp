@@ -19,6 +19,7 @@ private:
 public:
     Game();
     void test(std::string);
+    void startConnection(std::string buffer);
     virtual void handleEvent(uint32_t events) override;
     settings settings;
 };
