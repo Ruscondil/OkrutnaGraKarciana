@@ -55,7 +55,7 @@ void Game::handleEvent(uint32_t events, int _fd)
 
         std::string s_buffer = std::string(buffer);
         if (count > 0)
-        { // TODO deserializacja
+        {
             std::string eventName = getEventName(s_buffer);
             std::string arguments = "TEST";
 
@@ -65,7 +65,7 @@ void Game::handleEvent(uint32_t events, int _fd)
                 callback(arguments);
             }
             else
-            { // TODO sprawdzanie globalnej mapy
+            { // TODO dodać error
                 std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
             }
         }

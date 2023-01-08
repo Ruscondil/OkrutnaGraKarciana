@@ -14,7 +14,7 @@
 #include <unordered_set>
 #include <signal.h>
 #include <iostream>
-#include <cstring> //TODO potem usunąc memcpy
+#include <cstring>
 
 Client::Client(int fd) : _fd(fd)
 {

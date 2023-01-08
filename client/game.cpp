@@ -33,7 +33,7 @@ void Game::handleEvent(uint32_t events)
     if (events & EPOLLIN)
     {
         char buffer[256] = "";
-        ssize_t count = read(getSocket(), buffer, 256); // TODO dowiedzieć się jak to wyciągnąć z
+        ssize_t count = read(getSocket(), buffer, 256);
         std::cout << "Count: " << count << std::endl;
         std::string s_buffer;
 
@@ -42,8 +42,7 @@ void Game::handleEvent(uint32_t events)
         // Copy the buffer data to the string
         memcpy(&s_buffer[0], buffer, count);
         if (count > 0)
-        { // TODO deserializacja
-
+        {
             // printText(s_buffer);
             std::string eventName = getEventName(s_buffer);
             std::string arguments = s_buffer;
@@ -54,7 +53,7 @@ void Game::handleEvent(uint32_t events)
                 callback(arguments);
             }
             else
-            { // TODO sprawdzanie globalnej mapy
+            { // TODO dodać error
                 std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
             }
         }
@@ -77,6 +76,7 @@ void Game::handleEvent(uint32_t events)
 Game::Game()
 {
     registerNetEvent("TEST", std::bind(&Game::test, this, std::placeholders::_1));
+    registerNetEvent("beginClientConnection", std::bind(&Game::startConnection, this, std::placeholders::_1));
     // registerNetEvent('receiveLeadboard');
     // registerNetEvent('newRound');
     // registerNetEvent('receiveFinishRoundInfo');
