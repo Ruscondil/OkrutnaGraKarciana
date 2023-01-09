@@ -12,12 +12,12 @@ void Handler::registerNetEvent(std::string eventName, EventFunction callback)
         }
         else
         {
-            // TODO dodać error
+            error(0, 0, "Null callback function given");
         }
     }
     else
     {
-        // TODO dodać error
+        error(0, 0, "Event already exists");
     }
 }
 

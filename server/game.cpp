@@ -67,8 +67,8 @@ void Game::handleEvent(uint32_t events, int _fd)
                 callback(arguments);
             }
             else
-            { // TODO dodać error
-                std::cout << "Wrong event, bit sus: " << count << " " << eventName << std::endl;
+            {
+                error(0, 0, "Wrong event \"%s\", bit sus, clientID %i", eventName.c_str(), source);
             }
         }
         else
