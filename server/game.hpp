@@ -15,18 +15,23 @@ private:
         int cardsOnHand;
         int pointsToWin;
         int blankCardCount;
+        int cardSets;
         // TODO wektor wektorów czarnych kart i białych
     };
-    settings settings;
+    settings _settings;
     std::map<int, Client *> clients;
+    int gameCzar;
 
-    void beginServerConnection(std::string arguments);
-    void test(std ::string);
+    void beginServerConnection(int, std::string arguments);
+    void test(int, std ::string);
+    void setPlayerNickname(int, std::string);
+    void loadSettingsStartGame(int, std::string);
 
 public:
     Game();
     virtual void handleEvent(uint32_t events, int _fd) override;
     void newClient(int clientFd);
     void sendToAll(std::string eventName, std::string arguments);
+    void sendToAllBut(int butID, std::string eventName, std::string arguments);
     void closeServer();
 };

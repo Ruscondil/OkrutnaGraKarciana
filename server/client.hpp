@@ -16,12 +16,18 @@ class Client : public Handler
     };
     status _clientStatus;
     std::string _nickname;
+    int _score;
 
 public:
     Client(int fd);
     virtual ~Client(); // destuktor
     int fd() const;
     void TriggerClientEvent(std::string eventName, std::string arguments);
-    void changeNickname(std::string nickname);
+    void TriggerClientEvent(std::string eventName);
+    bool setNickname(std::string nickname);
+    std::string getNickname();
+    void setScore(int);
+    void setScoreInc(int);
+    int getScore();
     virtual void handleEvent(uint32_t events, int _fd) override;
 };

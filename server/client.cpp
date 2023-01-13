@@ -17,6 +17,8 @@
 
 Client::Client(int fd) : _fd(fd)
 {
+    _nickname = "";
+    _score = 0;
     // epoll_event ee{EPOLLIN | EPOLLRDHUP, {.ptr = this}};
     // epoll_ctl(_epollFd, EPOLL_CTL_ADD, _fd, &ee); // TODO naprawić
     // registerNetEvent("a", &Client::Test);
@@ -31,9 +33,19 @@ Client::~Client() // destuktor
 
 int Client::fd() const { return _fd; }
 
-void Client::changeNickname(std::string nickname)
+bool Client::setNickname(std::string nickname)
 {
-    _nickname = nickname;
+    if (_nickname == "") // TODO zmienić by było zależne od statusu
+    {
+        _nickname = nickname;
+        return true;
+    }
+    return false;
+}
+
+std::string Client::getNickname()
+{
+    return _nickname;
 }
 
 void Client::handleEvent(uint32_t events, int _fd)
@@ -53,4 +65,24 @@ void Client::TriggerClientEvent(std::string eventName, std::string arguments)
     {
     }
     // TODO zmienić status na niektywny
+}
+
+void Client::TriggerClientEvent(std::string eventName)
+{
+    TriggerClientEvent(eventName, "");
+}
+
+int Client::getScore()
+{
+    return _score;
+}
+
+void Client::setScore(int score)
+{
+    _score = score;
+}
+
+void Client::setScoreInc(int inc)
+{
+    _score = _score + inc;
 }
