@@ -79,6 +79,7 @@ Game::Game()
     registerNetEvent("showNicknameChoice", std::bind(&Game::showNicknameChoice, this, std::placeholders::_1));
     registerNetEvent("addPlayer", std::bind(&Game::addPlayer, this, std::placeholders::_1));
     registerNetEvent("setPlayers", std::bind(&Game::setPlayers, this, std::placeholders::_1));
+    registerNetEvent("nicknameAcceptStatus", std::bind(&Game::nicknameAcceptStatus, this, std::placeholders::_1));
     // registerNetEvent('receiveLeadboard');
     // registerNetEvent('newRound');
     // registerNetEvent('receiveFinishRoundInfo');
@@ -139,7 +140,11 @@ void Game::showNicknameChoice(std::string buffer)
         std::string nickname = deserializeString(buffer);
         players[nickname] = new player();
     }
+    setNickname();
+}
 
+void Game::setNickname()
+{
     std::string message, nickname;
     bool zle = true;
     // Spradzanie czy nick nie jest zajęty
@@ -157,6 +162,26 @@ void Game::showNicknameChoice(std::string buffer)
     if (nickname == "start")
     {
         sendSettingsStartGame();
+    }
+}
+
+void Game::nicknameAcceptStatus(std::string buffer)
+{
+    std::string message = deserializeString(buffer);
+
+    if (message == "ok")
+    {
+        // TODO wyświetlenie lobby
+    }
+    else if (message == "error")
+    {
+        // TODO wyświetlenie błędu
+        error(0, 0, "Nick juz jest zajety");
+        setNickname();
+    }
+    else
+    {
+        error(1, 0, "nicknameAcceptStatus: zły argument");
     }
 }
 

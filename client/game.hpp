@@ -33,6 +33,8 @@ private: // TODO pozamieniąć komendy na z _
     void setPlayers(std::string buffer);
     void addPlayer(std::string buffer);
     void sendSettingsStartGame();
+    void setNickname();
+    void nicknameAcceptStatus(std::string buffer);
     std::map<std::string, player *> players;
     settings _settings;
 

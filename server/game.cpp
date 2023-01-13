@@ -159,6 +159,7 @@ void Game::beginServerConnection(int source, std::string arguments)
 
 void Game::setPlayerNickname(int source, std::string arguments)
 {
+    std::string message;
     std::string nickname = deserializeString(arguments);
     std::cout << "Gracz ID " << source << " ustawia nick na " << nickname << std::endl;
     for (auto const &x : clients)
@@ -166,14 +167,21 @@ void Game::setPlayerNickname(int source, std::string arguments)
         if (x.second->getNickname() == nickname) // TODO może potem zmienić na to że musi być aktywny czy coś
         {
             error(0, 0, "Gracz ID %i probowal ustawic ustawic nickname \"%s\" gracza o ID %i", source, nickname.c_str(), x.first);
-            // TODO zwrócenie błędu (CHYBA LEPIEJ BY PO KLIENCIE SAM WIEDZIAŁ JAKIE SĄ NICKI)
+            std::string message;
+            serializeString(message, "error");
+            clients[source]->TriggerClientEvent("nicknameAcceptStatus", message);
             return;
         }
     }
+    message = "";
+    serializeString(message, "ok");
+    clients[source]->TriggerClientEvent("nicknameAcceptStatus", message);
 
     if (clients[source]->setNickname(nickname))
     {
-        sendToAllBut(source, "addPlayer", arguments);
+        message = "";
+        serializeString(message, nickname);
+        sendToAllBut(source, "addPlayer", message);
         std::string nicknames;
         for (auto const &x : clients)
         {
