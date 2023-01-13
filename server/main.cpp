@@ -86,7 +86,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            game.handleEvent(ee.events, 5);
+            game.handleEvent(ee.events, ee.data.u64);
         }
     }
 }
