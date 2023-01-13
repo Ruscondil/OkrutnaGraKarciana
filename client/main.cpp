@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         if (epollevent.events & EPOLLIN && epollevent.data.u64 == 692137420)
         {
             // read from stdin, write to socket
-            ssize_t bufsize = 255, received;
+            /* ssize_t bufsize = 255, received;
             char buffer[bufsize];
             received = readData(0, buffer, bufsize);
             buffer[received - 1] = '\0'; // TODO usunąć, do testów
@@ -78,13 +78,13 @@ int main(int argc, char **argv)
                 exit(0);
             }
             std::string s_buffer = std::string(buffer);
-            game.TriggerServerEvent(s_buffer, "");
+            game.TriggerServerEvent(s_buffer, ""); */
         }
         else
         {
             ((Handler *)epollevent.data.ptr)->handleEvent(epollevent.events);
         }
-       }
+    }
 
     return 0;
 }

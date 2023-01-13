@@ -3,7 +3,7 @@
 #include <map>
 #include <functional>
 
-typedef std::function<void(std::string)> EventFunction;
+typedef std::function<void(int, std::string)> EventFunction;
 
 class Handler
 {
@@ -13,7 +13,7 @@ public:
     virtual ~Handler()
     {
     }
-    virtual void handleEvent(uint32_t events, int _fd) = 0;
+    virtual void handleEvent(uint32_t events, int source) = 0;
     bool TriggerEvent(int reciverFd, std::string eventName, std::string arguments);
     EventFunction getNetEventCallback(std::string);
     void registerNetEvent(std::string eventName, EventFunction);

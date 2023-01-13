@@ -3,7 +3,7 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <unistd.h>
-
+#include <error.h>
 bool Handler::TriggerEvent(int reciverFd, std::string eventName, std::string arguments)
 {
     std::string message;
