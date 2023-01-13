@@ -11,7 +11,6 @@
 #include <errno.h>
 #include <error.h>
 #include <sys/epoll.h>
-#include <unordered_set>
 #include <signal.h>
 #include <iostream>
 #include <cstring>
@@ -50,19 +49,8 @@ void Client::handleEvent(uint32_t events, int _fd)
 
 void Client::TriggerClientEvent(std::string eventName, std::string arguments)
 {
-    std::string message;
-    std::cout << "TRIGGER " << _fd << std::endl;
-
-    message = eventName + arguments;
-
-    int count = message.length();
-
-    char test[256]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
-    memcpy(test, message.data(), message.size());
-    if (count != ::write(_fd, test, count))
+    if (!TriggerEvent(_fd, eventName, arguments))
     {
-        _clientStatus = LOST;
     }
-    // remove();
     // TODO zmienić status na niektywny
 }

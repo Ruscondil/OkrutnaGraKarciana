@@ -76,7 +76,7 @@ void Game::handleEvent(uint32_t events)
 Game::Game()
 {
     registerNetEvent("TEST", std::bind(&Game::test, this, std::placeholders::_1));
-    registerNetEvent("beginClientConnection", std::bind(&Game::startConnection, this, std::placeholders::_1));
+    registerNetEvent("beginClientConnection", std::bind(&Game::beginClientConnection, this, std::placeholders::_1));
     // registerNetEvent('receiveLeadboard');
     // registerNetEvent('newRound');
     // registerNetEvent('receiveFinishRoundInfo');
@@ -92,8 +92,22 @@ void Game::test(std::string a)
     std::cout << test << " | " << test2 << std::endl;
 }
 
-void Game::startConnection(std::string buffer)
+void Game::TriggerServerEvent(std::string eventName, std::string arguments)
 {
-    int clientServerFd = deserializeInt(buffer);
-    std::cout << clientServerFd << std::endl;
+    std::string message;
+    serializeInt(message, clientServerFd);
+    if (arguments.size() > 0)
+    {
+        message.pop_back();
+    }
+    printText(message + arguments);
+    TriggerEvent(getSocket(), eventName, message + arguments);
+}
+
+void Game::beginClientConnection(std::string buffer)
+{
+    clientServerFd = deserializeInt(buffer);
+    std::string message;
+    serializeString(message, "test");
+    TriggerServerEvent("beginServerConnection", message);
 }

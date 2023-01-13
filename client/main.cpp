@@ -77,31 +77,14 @@ int main(int argc, char **argv)
                 close(game.getSocket());
                 exit(0);
             }
-            writeData(game.getSocket(), buffer, received);
+            std::string s_buffer = std::string(buffer);
+            game.TriggerServerEvent(s_buffer, "");
         }
         else
         {
-            // std::cout << "TEST" << std::endl;
             ((Handler *)epollevent.data.ptr)->handleEvent(epollevent.events);
         }
-        /*  else if (epollevent.events & EPOLLIN && epollevent.data.u64 == game.getSocket())
-         {
-             // read from socket, write to stdout
-             ssize_t bufsize = 255, received;
-             char buffer[bufsize];
-             received = readData(game.getSocket(), buffer, bufsize);
-
-             if (received <= 0)
-             {
-                 printf("Connection lost\n");
-                 shutdown(game.getSocket(), SHUT_RDWR);
-                 epoll_ctl(epollFd, EPOLL_CTL_DEL, game.getSocket(), &epollevent);
-                 close(game.getSocket());
-                 exit(0);
-             }
-             writeData(1, buffer, received);
-         } */
-    }
+       }
 
     return 0;
 }

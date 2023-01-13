@@ -14,6 +14,7 @@ public:
     {
     }
     virtual void handleEvent(uint32_t events, int _fd) = 0;
+    bool TriggerEvent(int reciverFd, std::string eventName, std::string arguments);
     EventFunction getNetEventCallback(std::string);
     void registerNetEvent(std::string eventName, EventFunction);
     void eraseNetEvent(std::string eventName);

@@ -11,7 +11,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <functional>
-
+#include <cstring>
+#include <sstream>
 void printText(std::string text) // TODO usunać
 {
     for (char c : text)
@@ -29,6 +30,7 @@ void printText(std::string text) // TODO usunać
             std::cout << c;
         }
     }
+    std::cout << std::endl;
 }
 
 Game::settings::settings()
@@ -39,27 +41,38 @@ Game::settings::settings()
     blankCardCount = 5;
 }
 
-void Game::handleEvent(uint32_t events, int _fd)
+void Game::handleEvent(uint32_t events, int source)
 {
     if (events & EPOLLIN)
     {
         char buffer[256] = "";
 
-        ssize_t count = read(_fd, buffer, 256);
+        ssize_t count = read(source, buffer, 256);
+        std::string s_buffer;
+        s_buffer.resize(count);
+        memcpy(&s_buffer[0], buffer, count);
+
         if (count <= 0) // TODO do testów, zamienić na przenoszenie danego clienta w stan LOST
         {
-            printf("Connection lost with %i\n", _fd);
+            printf("Connection lost with %i\n", source);
             shutdown(getSocket(), SHUT_RDWR);
             // epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
             close(getSocket());
             exit(0);
         }
 
-        std::string s_buffer = std::string(buffer);
         if (count > 0)
         {
+            printText(s_buffer);
             std::string eventName = getEventName(s_buffer);
-            std::string arguments = "TEST";
+            int clientAuth = deserializeInt(s_buffer);
+            if (clientAuth != source)
+            {
+                error(0, 0, "Error: Wrong client code. Cliend ID: %i, Client auth code: %i", source, clientAuth);
+                // TODO wywalenie użytkownika
+            }
+            std::cout << "count: " << count << " clientAuth: " << clientAuth << std::endl;
+            std::string arguments = s_buffer;
 
             EventFunction callback = getNetEventCallback(eventName);
             if (callback)
@@ -83,6 +96,7 @@ void Game::handleEvent(uint32_t events, int _fd)
 Game::Game()
 {
     registerNetEvent("testowanie", std::bind(&Game::test, this, std::placeholders::_1));
+    registerNetEvent("beginServerConnection", std::bind(&Game::beginServerConnection, this, std::placeholders::_1));
 }
 
 void Game::newClient(int clientFd)
@@ -103,15 +117,19 @@ void Game::sendToAll(std::string eventName, std::string arguments)
 
 void Game::test(std::string arg)
 {
+    arg = "TEST";
     std::string buffer = "";
-    std::cout << "SIZE1 " << buffer.size() << std::endl;
     serializeInt(buffer, 2137);
     serializeString(buffer, "floppa friday i soggota");
-    std::cout << "SIZE2 " << buffer.size() << std::endl;
     printText(buffer);
     // std::cout << "CZEMU ZAWSZE SA PROBLEMY" << std::endl;
 
     sendToAll(arg, buffer);
+}
+
+void Game::beginServerConnection(std::string arguments)
+{ // TODO zmienainie statusu clienta
+    std::cout << "Autoryzacja gracza" << std::endl;
 }
 
 void Game::closeServer()

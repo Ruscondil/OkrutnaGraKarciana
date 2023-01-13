@@ -79,7 +79,7 @@ int main(int argc, char **argv)
             error(0, errno, "epoll_wait failed");
             ctrl_c(SIGINT);
         }
-        std::cout << &game << " " << ee.data.ptr << " | " << ee.data.u64 << " Event:" << ee.events << " fd:" << ee.data.u64 << std::endl;
+        // std::cout << &game << " " << ee.data.ptr << " | " << ee.data.u64 << " Event:" << ee.events << " fd:" << ee.data.u64 << std::endl;
         if (ee.data.u64 == 0)
         {
             servHandler.handleEvent(ee.events, -1);

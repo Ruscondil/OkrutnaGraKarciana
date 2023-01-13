@@ -2,9 +2,10 @@
 #include "client.hpp"
 #include "handler.hpp"
 #include "connection.hpp"
+#include "timer.hpp"
 
 #include <map>
-class Game : public Handler, public connectionManager
+class Game : public Handler, public connectionManager, public Timer
 {
 private:
     struct settings
@@ -19,11 +20,13 @@ private:
     settings settings;
     std::map<int, Client *> clients;
 
+    void beginServerConnection(std::string arguments);
+    void test(std ::string);
+
 public:
     Game();
     virtual void handleEvent(uint32_t events, int _fd) override;
-    void sendToAll(std::string eventName, std::string arguments);
     void newClient(int clientFd);
-    void test(std ::string);
+    void sendToAll(std::string eventName, std::string arguments);
     void closeServer();
 };
