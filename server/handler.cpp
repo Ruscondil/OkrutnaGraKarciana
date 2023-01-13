@@ -7,7 +7,7 @@
 bool Handler::TriggerEvent(int reciverFd, std::string eventName, std::string arguments)
 {
     std::string message;
-    std::cout << "TRIGGER " << reciverFd << std::endl;
+    std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
 
     message = eventName + arguments;
 
