@@ -24,4 +24,5 @@ public:
     int deserializeInt(std::string &buffer);
     std::string deserializeString(std::string &buffer);
     std::string getEventName(std::string &buffer);
+    std::string getArguments(std::string &buffer);
 };

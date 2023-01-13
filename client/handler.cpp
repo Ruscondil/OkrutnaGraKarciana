@@ -9,8 +9,11 @@ bool Handler::TriggerEvent(int reciverFd, std::string eventName, std::string arg
 {
     std::string message;
     std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
-    message = eventName + arguments;
+
+    message = eventName + arguments + '\n';
+
     int count = message.length();
+
     char test[256]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
     memcpy(test, message.data(), message.size());
     return count != ::write(reciverFd, test, count);
@@ -49,26 +52,17 @@ EventFunction Handler::getNetEventCallback(std::string eventName)
     return 0;
 }
 
-void Handler::serializeEventName(std::string &buffer, std::string eventName)
-{
-    buffer.append(eventName + "\n");
-}
-
 void Handler::serializeInt(std::string &buffer, int value)
 {
     char data[4];
     value = htonl(value);
     memcpy(data, &value, 4);
-    if (buffer.size() > 0)
-        buffer.pop_back(); // usuwanie \n
-    buffer.append("\r" + std::string(data, 4) + "\n");
+    buffer.append("\r" + std::string(data, 4));
 }
 
 void Handler::serializeString(std::string &buffer, std::string value)
 {
-    if (buffer.size() > 0)
-        buffer.pop_back(); // usuwanie \n
-    buffer.append("\r" + value + "\n");
+    buffer.append("\r" + value);
 }
 
 int Handler::deserializeInt(std::string &buffer)
@@ -111,4 +105,23 @@ std::string Handler::deserializeString(std::string &buffer)
 std::string Handler::getEventName(std::string &buffer)
 {
     return deserializeString(buffer);
+}
+
+std::string Handler::getArguments(std::string &buffer)
+{
+    std::string text;
+    for (int i = 0; i < (int)buffer.size(); i++)
+    {
+        if (buffer[i] == '\n')
+        {
+            buffer.erase(0, i + 1); // delete first word and space from buffer
+            return text;
+        }
+        else
+        {
+            text += buffer[i];
+        }
+    }
+    buffer.clear(); // if there is no space in buffer, delete everything
+    return text;
 }

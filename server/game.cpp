@@ -55,24 +55,28 @@ void Game::handleEvent(uint32_t events, int source)
 
         if (count > 0)
         {
-            // printText(s_buffer);
-            std::string eventName = getEventName(s_buffer);
-            int clientAuth = deserializeInt(s_buffer);
-            if (clientAuth != source)
+            while (s_buffer.size() > 0)
             {
-                error(0, 0, "Error: Wrong client code. Cliend ID: %i, Client auth code: %i", source, clientAuth);
-                // TODO wywalenie użytkownika
-            }
-            std::string arguments = s_buffer;
+                // printText(s_buffer);
+                std::string eventName = getEventName(s_buffer);
+                int clientAuth = deserializeInt(s_buffer);
+                std::string arguments = getArguments(s_buffer);
 
-            EventFunction callback = getNetEventCallback(eventName);
-            if (callback)
-            {
-                callback(source, arguments);
-            }
-            else
-            {
-                error(0, 0, "Wrong event \"%s\", bit sus, clientID %i", eventName.c_str(), source);
+                if (clientAuth != source)
+                {
+                    error(0, 0, "Error: Wrong client code. Cliend ID: %i, Client auth code: %i", source, clientAuth);
+                    // TODO wywalenie użytkownika
+                }
+
+                EventFunction callback = getNetEventCallback(eventName);
+                if (callback)
+                {
+                    callback(source, arguments);
+                }
+                else
+                {
+                    error(0, 0, "Wrong event \"%s\", bit sus, clientID %i", eventName.c_str(), source);
+                }
             }
         }
         else
