@@ -9,9 +9,8 @@ class Timer
 
 public:
     Timer();
-    Timer(int seconds);
     int getTimeLeft() const;
-    void startTimer();
+    void startTimer(int seconds);
     virtual void timerDone();
     virtual void secondPassed();
     ~Timer();

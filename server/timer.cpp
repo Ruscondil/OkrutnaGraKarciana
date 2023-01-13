@@ -4,20 +4,20 @@
 #include <error.h>
 
 Timer::Timer() : _timerThread() {}
-Timer::Timer(int seconds) : _seconds(seconds), _timerThread() {}
 
 int Timer::getTimeLeft() const
 {
     return _seconds;
 }
 
-void Timer::startTimer()
+void Timer::startTimer(int seconds)
 {
     if (_timerThread.joinable())
     {
         error(0, 0, "Timer jest już odpalony");
         return;
     }
+    _seconds = seconds;
     _timerThread = std::thread(&Timer::countdown, this);
 }
 
