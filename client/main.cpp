@@ -15,27 +15,16 @@
 // #include <netdb.h>
 // #include <thread>
 // TODO dodać zamykaniee wszędzie deskryptorów
-ssize_t readData(int fd, char *buffer, ssize_t buffsize)
-{
-    auto ret = read(fd, buffer, buffsize);
-    if (ret == -1)
-        error(1, errno, "read failed on descriptor %d", fd);
-    return ret;
-}
+Game game;
 
-void writeData(int fd, char *buffer, ssize_t count)
+void ctrl_c(int elo)
 {
-    auto ret = write(fd, buffer, count);
-    if (ret == -1)
-        error(1, errno, "write failed on descriptor %d", fd);
-    if (ret != count)
-        error(0, errno, "wrote less than requested to descriptor %d (%ld/%ld)", fd, count, ret);
+    game.closeClient();
 }
 
 int main(int argc, char **argv)
 {
 
-    Game game;
     if (argc == 3)
     {
         game.setServerAddress(argv[1], argv[2]);
@@ -44,6 +33,9 @@ int main(int argc, char **argv)
     {
         error(1, 0, "Need 2 args");
     }
+
+    signal(SIGINT, ctrl_c); // Przechwycenie ctrl+c
+    signal(SIGPIPE, SIG_IGN);
 
     // Resolve arguments to IPv4 address with a port number
     game.serverConnect();

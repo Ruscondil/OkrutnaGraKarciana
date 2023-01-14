@@ -72,6 +72,7 @@ int connectionManager::getEpollFd() const
 
 void connectionManager::closeServer()
 {
+    shutdown(_servFd, SHUT_RDWR);
     close(_servFd);
     printf("Closing server\n");
     exit(0);

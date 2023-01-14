@@ -44,4 +44,5 @@ public:
     void TriggerServerEvent(std::string eventName, std::string arguments);
     void TriggerServerEvent(std::string eventName);
     virtual void handleEvent(uint32_t events) override;
+    void closeClient();
 };

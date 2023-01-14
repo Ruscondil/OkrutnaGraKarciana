@@ -328,6 +328,10 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
     }
 }
 
+void Game::newRound()
+{
+}
+
 void Game::closeServer()
 {
     for (auto const &client : clients)

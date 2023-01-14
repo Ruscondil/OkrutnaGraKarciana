@@ -33,6 +33,7 @@ private:
     void test(int, std ::string);
     void setPlayerNickname(int, std::string);
     void loadSettingsStartGame(int, std::string);
+    void newRound();
 
 public:
     Game();

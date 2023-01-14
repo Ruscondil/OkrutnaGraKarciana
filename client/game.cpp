@@ -62,11 +62,7 @@ void Game::handleEvent(uint32_t events)
         else if (count <= 0)
         {
             events |= EPOLLERR;
-            printf("Connection lost\n");
-            shutdown(getSocket(), SHUT_RDWR);
-            // epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
-            close(getSocket());
-            exit(0);
+            closeClient();
         }
     }
     if (events & ~EPOLLIN)
@@ -197,4 +193,13 @@ void Game::sendSettingsStartGame()
     serializeInt(message, _settings.blankCardCount);
     serializeInt(message, _settings.cardSets);
     TriggerServerEvent("loadSettingsStartGame", message);
+}
+
+void Game::closeClient()
+{
+    shutdown(getSocket(), SHUT_RDWR);
+    epoll_ctl(getEpollFd(), EPOLL_CTL_DEL, getSocket(), nullptr);
+    close(getSocket());
+    printf("Closing client\n");
+    exit(0);
 }
