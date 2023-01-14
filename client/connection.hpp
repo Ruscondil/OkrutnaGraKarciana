@@ -8,6 +8,7 @@ class ServerConnection
 private:
     addrinfo *_resolved, _hints; // TCP
     int _sock;
+    int _epollFd;
 
 public:
     ServerConnection();
@@ -17,4 +18,6 @@ public:
     void serverConnect();
     void serverConnect(char *addr, char *port);
     int getSocket();
+    void setEpollFd(int epollFd);
+    int getEpollFd() const;
 };

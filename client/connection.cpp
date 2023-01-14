@@ -5,9 +5,6 @@
 
 ServerConnection::ServerConnection()
 {
-    // epoll_event ee{EPOLLIN | EPOLLRDHUP, {.ptr = this}};
-    // epoll_ctl(epollFd, EPOLL_CTL_ADD, _fd, &ee);
-
     _hints = {.ai_flags = 0, .ai_family = AF_INET, .ai_socktype = SOCK_STREAM};
     setServerAddress((char *)"127.0.0.1", (char *)"7777");
 }
@@ -59,4 +56,14 @@ void ServerConnection::serverConnect(char *addr, char *port)
 int ServerConnection::getSocket()
 {
     return _sock;
+}
+
+void ServerConnection::setEpollFd(int epollFd)
+{
+    _epollFd = epollFd;
+}
+
+int ServerConnection::getEpollFd() const
+{
+    return _epollFd;
 }

@@ -47,6 +47,7 @@ int main(int argc, char **argv)
     game.serverConnect();
 
     int epollFd = epoll_create1(0);
+    game.setEpollFd(epollFd);
     epoll_event epollevent;
 
     epollevent.events = EPOLLIN;
