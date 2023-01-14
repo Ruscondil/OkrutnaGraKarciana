@@ -64,8 +64,9 @@ void Game::handleEvent(uint32_t events, int source)
 
                 if (clientAuth != source)
                 {
-                    error(0, 0, "Error: Wrong client code. Cliend ID: %i, Client auth code: %i", source, clientAuth);
-                    // TODO wywalenie użytkownika
+                    error(0, 0, "Error: Wrong client auth code. Cliend ID: %i, Client auth code: %i", source, clientAuth);
+                    removeClient(source);
+                    return;
                 }
 
                 EventFunction callback = getNetEventCallback(eventName);
@@ -84,10 +85,25 @@ void Game::handleEvent(uint32_t events, int source)
             events |= EPOLLERR;
 
             printf("Connection lost with %i\n", source);
-            shutdown(getSocket(), SHUT_RDWR);
-            // epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
-            close(getSocket());
-            exit(0);
+            auto it = clients.find(source);
+            if (it != clients.end())
+            {
+                if (gameStatus != LOBBY and it->second->getStatus() != Client::status::NOTAUTH and it->second->getStatus() != Client::status::NONICKNAME)
+                {
+                    it->second->setStatus(Client::status::LOST);
+                    changeClientId(source);
+
+                    closeClientFd(source);
+                }
+                else
+                {
+                    removeClient(source);
+                }
+            }
+            else
+            {
+                closeClientFd(source);
+            }
         }
     }
     if (events & ~EPOLLIN)
@@ -96,7 +112,7 @@ void Game::handleEvent(uint32_t events, int source)
     }
 }
 
-Game::Game()
+Game::Game() : gameStatus(LOBBY)
 {
     registerNetEvent("testowanie", std::bind(&Game::test, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("beginServerConnection", std::bind(&Game::beginServerConnection, this, std::placeholders::_1, std::placeholders::_2));
@@ -114,6 +130,55 @@ void Game::newClient(int clientFd)
     std::string message = "";
     serializeInt(message, clientFd);
     clients[clientFd]->TriggerClientEvent("beginClientConnection", message); // TODO giga zła głowa więc potem ogarnąć to find
+}
+
+void Game::removeClient(int clientFd)
+{
+    std::cout << "Usuwanie Gracza ID " << clientFd << std::endl;
+    auto it = clients.find(clientFd);
+    if (it != clients.end())
+    {
+        delete it->second;
+        clients.erase(it);
+        closeClientFd(clientFd);
+    }
+    else
+    {
+        error(0, 0, "Usuwanie gracza ID %i nie udane. Gracz nie istnieje", clientFd);
+    }
+}
+
+void Game::closeClientFd(int clientFd)
+{
+    epoll_ctl(getEpollFd(), EPOLL_CTL_DEL, clientFd, nullptr);
+    shutdown(clientFd, SHUT_RDWR);
+    close(clientFd);
+}
+
+std::map<int, Client *>::iterator Game::changeClientId(int clientFd, int newClientFd)
+{
+    if (clients.find(newClientFd) == clients.end() and clients.find(clientFd) != clients.end())
+    {
+        auto nodeHandler = clients.extract(clientFd);
+        nodeHandler.key() = newClientFd;
+        clients.insert(std::move(nodeHandler));
+        return clients.find(newClientFd);
+    }
+    else
+    {
+        error(1, 0, "Zamiana ID niemożliwa. Stare ID %i, Nowe ID %i", clientFd, newClientFd);
+        return clients.end();
+    }
+}
+
+std::map<int, Client *>::iterator Game::changeClientId(int clientFd)
+{
+    int key = -1;
+    while (clients.count(key) != 0)
+    {
+        key--;
+    }
+    return changeClientId(clientFd, key);
 }
 
 void Game::sendToAll(std::string eventName, std::string arguments)
@@ -148,20 +213,23 @@ void Game::test(int source, std::string arg)
 void Game::beginServerConnection(int source, std::string arguments)
 { // TODO zmienainie statusu clienta
     std::cout << "Autoryzacja gracza ID " << source << std::endl;
-
+    auto client = clients.find(source);
+    client->second->setStatus(Client::status::NONICKNAME);
     std::string nicknames;
     for (auto const &x : clients)
     {
-        if (x.second->getNickname() != "") // TODO może potem zmienić na to że musi być aktywny czy coś
+        if (x.second->getStatus() == Client::status::OK)
         {
             serializeString(nicknames, x.second->getNickname());
         }
     }
-    clients[source]->TriggerClientEvent("showNicknameChoice", nicknames);
+    client->second->TriggerClientEvent("showNicknameChoice", nicknames);
 }
 
 void Game::setPlayerNickname(int source, std::string arguments)
 {
+    auto client = clients.find(source);
+    bool recoverClient = false;
     std::string message;
     std::string nickname = deserializeString(arguments);
     std::cout << "Gracz ID " << source << " ustawia nick na " << nickname << std::endl;
@@ -170,18 +238,29 @@ void Game::setPlayerNickname(int source, std::string arguments)
     {
         if (x.second->getNickname() == nickname) // TODO może potem zmienić na to że musi być aktywny czy coś
         {
-            error(0, 0, "Gracz ID %i probowal ustawic ustawic nickname \"%s\" gracza o ID %i", source, nickname.c_str(), x.first);
-            std::string message;
-            serializeString(message, "error");
-            clients[source]->TriggerClientEvent("nicknameAcceptStatus", message);
-            return;
+            if (x.second->getStatus() == Client::status::LOST)
+            {
+                std::cout << "Gracz ID " << source << " zostaje przywrócony do gry." << std::endl;
+                delete client->second; // TODO zrobić na na funkcje czy ciś
+                clients.erase(client);
+                client = changeClientId(x.first, source);
+                recoverClient = true;
+            }
+            else
+            {
+                error(0, 0, "Gracz ID %i probowal ustawic ustawic nickname \"%s\" gracza o ID %i", source, nickname.c_str(), x.first);
+                std::string message;
+                serializeString(message, "error");
+                client->second->TriggerClientEvent("nicknameAcceptStatus", message);
+                return;
+            }
         }
     }
     message = "";
     serializeString(message, "ok");
-    clients[source]->TriggerClientEvent("nicknameAcceptStatus", message);
+    client->second->TriggerClientEvent("nicknameAcceptStatus", message);
 
-    if (clients[source]->setNickname(nickname))
+    if (client->second->setNickname(nickname))
     {
         message = "";
         serializeString(message, nickname);
@@ -194,13 +273,19 @@ void Game::setPlayerNickname(int source, std::string arguments)
                 serializeString(nicknames, x.second->getNickname());
             }
         }
-        clients[source]->TriggerClientEvent("setPlayers", nicknames);
+        client->second->TriggerClientEvent("setPlayers", nicknames);
     }
     else
     {
-        error(0, 0, "Gracz ID %i probowal ponownie ustawic nickname", source);
-        // TODO wyrzucenie klienta
+        if (!recoverClient)
+        {
+            error(0, 0, "Gracz ID %i probowal ponownie ustawic nickname", source);
+            return;
+            // TODO wyrzucenie klienta
+        }
     }
+
+    client->second->setStatus(Client::status::OK);
 }
 
 void Game::loadSettingsStartGame(int source, std::string arguments)

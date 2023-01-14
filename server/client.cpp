@@ -15,13 +15,8 @@
 #include <iostream>
 #include <cstring>
 
-Client::Client(int fd) : _fd(fd)
+Client::Client(int fd) : _fd(fd), _clientStatus(NOTAUTH), _nickname(""), _score(0)
 {
-    _nickname = "";
-    _score = 0;
-    // epoll_event ee{EPOLLIN | EPOLLRDHUP, {.ptr = this}};
-    // epoll_ctl(_epollFd, EPOLL_CTL_ADD, _fd, &ee); // TODO naprawić
-    // registerNetEvent("a", &Client::Test);
 }
 
 Client::~Client() // destuktor
@@ -35,7 +30,7 @@ int Client::fd() const { return _fd; }
 
 bool Client::setNickname(std::string nickname)
 {
-    if (_nickname == "") // TODO zmienić by było zależne od statusu
+    if (getStatus() == NONICKNAME)
     {
         _nickname = nickname;
         return true;
@@ -43,7 +38,7 @@ bool Client::setNickname(std::string nickname)
     return false;
 }
 
-std::string Client::getNickname()
+std::string Client::getNickname() const
 {
     return _nickname;
 }
@@ -63,8 +58,8 @@ void Client::TriggerClientEvent(std::string eventName, std::string arguments)
 {
     if (!TriggerEvent(_fd, eventName, arguments))
     {
+        // TODO dać że user lost
     }
-    // TODO zmienić status na niektywny
 }
 
 void Client::TriggerClientEvent(std::string eventName)
@@ -72,7 +67,7 @@ void Client::TriggerClientEvent(std::string eventName)
     TriggerClientEvent(eventName, "");
 }
 
-int Client::getScore()
+int Client::getScore() const
 {
     return _score;
 }
@@ -85,4 +80,14 @@ void Client::setScore(int score)
 void Client::setScoreInc(int inc)
 {
     _score = _score + inc;
+}
+
+void Client::setStatus(status newStatus)
+{
+    _clientStatus = newStatus;
+}
+
+Client::status Client::getStatus() const
+{
+    return _clientStatus;
 }
