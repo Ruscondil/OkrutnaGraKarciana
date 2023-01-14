@@ -6,7 +6,7 @@
 
 class Game : public Handler, public ServerConnection
 {
-private: // TODO pozamieniąć komendy na z _
+private:
     int _clientServerFd;
     bool _isReady;
     int _round;

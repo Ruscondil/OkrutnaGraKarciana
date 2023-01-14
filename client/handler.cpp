@@ -17,8 +17,6 @@ bool Handler::TriggerEvent(int reciverFd, std::string eventName, std::string arg
     char test[256]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
     memcpy(test, message.data(), message.size());
     return count != ::write(reciverFd, test, count);
-
-    // TODO zmienić status na niektywny
 }
 
 void Handler::registerNetEvent(std::string eventName, EventFunction callback)

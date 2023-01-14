@@ -82,7 +82,6 @@ void Game::handleEvent(uint32_t events, int source)
         else
         {
             events |= EPOLLERR;
-            // TODO do testów, zamienić na przenoszenie danego clienta w stan LOST
 
             printf("Connection lost with %i\n", source);
             shutdown(getSocket(), SHUT_RDWR);
@@ -166,6 +165,7 @@ void Game::setPlayerNickname(int source, std::string arguments)
     std::string message;
     std::string nickname = deserializeString(arguments);
     std::cout << "Gracz ID " << source << " ustawia nick na " << nickname << std::endl;
+
     for (auto const &x : clients)
     {
         if (x.second->getNickname() == nickname) // TODO może potem zmienić na to że musi być aktywny czy coś
