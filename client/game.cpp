@@ -97,10 +97,8 @@ void Game::test(std::string a)
 
 void Game::TriggerServerEvent(std::string eventName, std::string arguments)
 {
-    std::string message;
-    serializeInt(message, _clientServerFd);
     // printText(message + arguments);
-    TriggerEvent(getSocket(), eventName, message + arguments);
+    TriggerEvent(getSocket(), eventName, serializeInt(_clientServerFd) + arguments);
 }
 
 void Game::TriggerServerEvent(std::string eventName)
@@ -127,7 +125,7 @@ void Game::showNicknameChoice(std::string buffer)
 
 void Game::setNickname()
 {
-    std::string message, nickname;
+    std::string nickname;
     bool zle = true;
     // Spradzanie czy nick nie jest zajęty
     while (zle)
@@ -139,8 +137,7 @@ void Game::setNickname()
             zle = false;
     }
 
-    serializeString(message, nickname);
-    TriggerServerEvent("setPlayerNickname", message);
+    TriggerServerEvent("setPlayerNickname", serializeString(nickname));
     if (nickname == "start")
     {
         sendSettingsStartGame();
@@ -187,11 +184,8 @@ void Game::setPlayers(std::string buffer)
 void Game::sendSettingsStartGame()
 {
     std::string message;
-    serializeInt(message, _settings.roundTimeSeconds);
-    serializeInt(message, _settings.cardsOnHand);
-    serializeInt(message, _settings.pointsToWin);
-    serializeInt(message, _settings.blankCardCount);
-    serializeInt(message, _settings.cardSets);
+    message += serializeInt(_settings.roundTimeSeconds) + serializeInt(_settings.cardsOnHand) + serializeInt(_settings.pointsToWin);
+    message += serializeInt(_settings.blankCardCount) + serializeInt(_settings.cardSets);
     TriggerServerEvent("loadSettingsStartGame", message);
 }
 

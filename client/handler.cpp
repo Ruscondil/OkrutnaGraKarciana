@@ -50,17 +50,17 @@ EventFunction Handler::getNetEventCallback(std::string eventName)
     return 0;
 }
 
-void Handler::serializeInt(std::string &buffer, int value)
+std::string Handler::serializeInt(int value)
 {
     char data[4];
     value = htonl(value);
     memcpy(data, &value, 4);
-    buffer.append("\r" + std::string(data, 4));
+    return "\r" + std::string(data, 4);
 }
 
-void Handler::serializeString(std::string &buffer, std::string value)
+std::string Handler::serializeString(std::string value)
 {
-    buffer.append("\r" + value);
+    return "\r" + value;
 }
 
 int Handler::deserializeInt(std::string &buffer)

@@ -127,9 +127,7 @@ void Game::newClient(int clientFd)
     {
         gameCzar = clientFd;
     }
-    std::string message = "";
-    serializeInt(message, clientFd);
-    clients[clientFd]->TriggerClientEvent("beginClientConnection", message); // TODO giga zła głowa więc potem ogarnąć to find
+    clients[clientFd]->TriggerClientEvent("beginClientConnection", serializeInt(clientFd)); // TODO giga zła głowa więc potem ogarnąć to find
 }
 
 void Game::removeClient(int clientFd)
@@ -201,13 +199,11 @@ void Game::sendToAllBut(int butID, std::string eventName, std::string arguments)
 void Game::test(int source, std::string arg)
 {
     arg = "TEST";
-    std::string buffer = "";
-    serializeInt(buffer, 2137);
-    serializeString(buffer, "floppa friday i soggota");
+
     // printText(buffer);
     //  std::cout << "CZEMU ZAWSZE SA PROBLEMY" << std::endl;
 
-    sendToAll(arg, buffer);
+    sendToAll(arg, serializeInt(2137) + serializeString("floppa friday i soggota"));
 }
 
 void Game::beginServerConnection(int source, std::string arguments)
@@ -220,7 +216,7 @@ void Game::beginServerConnection(int source, std::string arguments)
     {
         if (x.second->getStatus() == Client::status::OK)
         {
-            serializeString(nicknames, x.second->getNickname());
+            nicknames += serializeString(x.second->getNickname());
         }
     }
     client->second->TriggerClientEvent("showNicknameChoice", nicknames);
@@ -249,28 +245,23 @@ void Game::setPlayerNickname(int source, std::string arguments)
             else
             {
                 error(0, 0, "Gracz ID %i probowal ustawic ustawic nickname \"%s\" gracza o ID %i", source, nickname.c_str(), x.first);
-                std::string message;
-                serializeString(message, "error");
-                client->second->TriggerClientEvent("nicknameAcceptStatus", message);
+
+                client->second->TriggerClientEvent("nicknameAcceptStatus", serializeString("error"));
                 return;
             }
         }
     }
-    message = "";
-    serializeString(message, "ok");
-    client->second->TriggerClientEvent("nicknameAcceptStatus", message);
+    client->second->TriggerClientEvent("nicknameAcceptStatus", serializeString("ok"));
 
     if (client->second->setNickname(nickname))
     {
-        message = "";
-        serializeString(message, nickname);
-        sendToAllBut(source, "addPlayer", message);
+        sendToAllBut(source, "addPlayer", serializeString(nickname));
         std::string nicknames;
         for (auto const &x : clients)
         {
             if (x.second->getNickname() != "") // TODO może potem zmienić na to że musi być aktywny czy coś
             {
-                serializeString(nicknames, x.second->getNickname());
+                nicknames += serializeString(x.second->getNickname());
             }
         }
         client->second->TriggerClientEvent("setPlayers", nicknames);
