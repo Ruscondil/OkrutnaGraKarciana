@@ -13,6 +13,8 @@ public:
     void setReuseAddr();
     int getSocket();
     void setPort(char *txt);
+    void setEpollFd(int epollFd);
+    int getEpollFd() const;
     void getReadyForConnection();
     void prepareServer();
     void closeServer();

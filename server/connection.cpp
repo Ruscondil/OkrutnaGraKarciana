@@ -60,6 +60,16 @@ void connectionManager::prepareServer()
     getReadyForConnection();
 }
 
+void connectionManager::setEpollFd(int epollFd)
+{
+    _epollFd = epollFd;
+}
+
+int connectionManager::getEpollFd() const
+{
+    return _epollFd;
+}
+
 void connectionManager::closeServer()
 {
     close(_servFd);

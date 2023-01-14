@@ -68,6 +68,7 @@ int main(int argc, char **argv)
     game.prepareServer();
 
     epollFd = epoll_create1(0);
+    game.setEpollFd(epollFd);
     ServHandler servHandler;
     epoll_event ee{EPOLLIN, {.u64 = 0}};
     epoll_ctl(epollFd, EPOLL_CTL_ADD, game.getSocket(), &ee);

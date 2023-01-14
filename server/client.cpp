@@ -27,8 +27,8 @@ Client::Client(int fd) : _fd(fd)
 Client::~Client() // destuktor
 {
     // epoll_ctl(epollFd, EPOLL_CTL_DEL, _fd, nullptr);
-    shutdown(_fd, SHUT_RDWR);
-    close(_fd);
+    // shutdown(_fd, SHUT_RDWR);
+    // close(_fd);
 }
 
 int Client::fd() const { return _fd; }
