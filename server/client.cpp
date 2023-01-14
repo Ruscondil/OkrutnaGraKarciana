@@ -15,16 +15,7 @@
 #include <iostream>
 #include <cstring>
 
-Client::Client(int fd) : _fd(fd), _clientStatus(NOTAUTH), _nickname(""), _score(0)
-{
-}
-
-Client::~Client() // destuktor
-{
-    // epoll_ctl(epollFd, EPOLL_CTL_DEL, _fd, nullptr);
-    // shutdown(_fd, SHUT_RDWR);
-    // close(_fd);
-}
+Client::Client(int fd) : _fd(fd), _clientStatus(NOTAUTH), _nickname(""), _score(0) {}
 
 int Client::fd() const { return _fd; }
 
@@ -46,13 +37,6 @@ std::string Client::getNickname() const
 void Client::handleEvent(uint32_t events, int _fd)
 {
 }
-
-/* void Client::remove()
-{
-    printf("removing %d\n", _fd);
-    clients.erase(this);
-    delete this;
-} */
 
 void Client::TriggerClientEvent(std::string eventName, std::string arguments)
 {

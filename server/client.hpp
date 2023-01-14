@@ -17,7 +17,6 @@ public:
         LOST = 1
     };
     Client(int fd);
-    virtual ~Client(); // destuktor
     int fd() const;
     void TriggerClientEvent(std::string eventName, std::string arguments);
     void TriggerClientEvent(std::string eventName);

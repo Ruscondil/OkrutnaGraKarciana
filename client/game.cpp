@@ -83,24 +83,11 @@ Game::Game()
     registerNetEvent("addPlayer", std::bind(&Game::addPlayer, this, std::placeholders::_1));
     registerNetEvent("setPlayers", std::bind(&Game::setPlayers, this, std::placeholders::_1));
     registerNetEvent("nicknameAcceptStatus", std::bind(&Game::nicknameAcceptStatus, this, std::placeholders::_1));
-    // registerNetEvent('receiveLeadboard');
-    // registerNetEvent('newRound');
-    // registerNetEvent('receiveFinishRoundInfo');
 }
 
-Game::player::player()
-{
-    score = 0;
-}
+Game::player::player() : score(0) {}
 
-Game::settings::settings()
-{
-    roundTimeSeconds = 90;
-    cardsOnHand = 6;
-    pointsToWin = 3;
-    blankCardCount = 5;
-    cardSets = 1;
-}
+Game::settings::settings() : roundTimeSeconds(90), cardsOnHand(6), pointsToWin(3), blankCardCount(5), cardSets(1) {}
 
 void Game::test(std::string a)
 {

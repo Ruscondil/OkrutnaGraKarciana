@@ -1,13 +1,15 @@
 
+
+#include "connection.hpp"
+#include "game.hpp"
+
 #include <unistd.h>
 #include <errno.h>
 #include <error.h>
 #include <sys/epoll.h>
 #include <poll.h>
 #include <iostream>
-
-#include "connection.hpp"
-#include "game.hpp"
+#include <signal.h>
 // #include <cstdlib>
 // #include <netinet/in.h>
 // #include <netdb.h>
