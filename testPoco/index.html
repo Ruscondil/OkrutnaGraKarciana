@@ -1,0 +1,23 @@
+<html>
+
+<head>
+    <title>My Vue.js App</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="app.vue"></script>
+</head>
+
+<body>
+    <div id="app">
+        <h1>{{ message }}</h1>
+
+        <button @click="reverseMessage">Reverse Message</button>
+
+        <button @click="message += '!'">Append "!"</button>
+
+        <a href="https://vuejs.org" @click.prevent="notify">
+            A link with e.preventDefault()
+        </a>
+    </div>
+</body>
+
+</html>
