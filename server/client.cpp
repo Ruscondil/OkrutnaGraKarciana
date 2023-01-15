@@ -75,3 +75,20 @@ Client::status Client::getStatus() const
 {
     return _clientStatus;
 }
+
+void Client::addCard(int id)
+{
+    cardsID.insert(id);
+}
+void Client::deleteCard(int id)
+{
+    cardsID.erase(id);
+}
+int Client::getCardsCount()
+{
+    return cardsID.size() - 1;
+}
+bool Client::haveCard(int id)
+{
+    return cardsID.find(id) != cardsID.end();
+}

@@ -35,6 +35,7 @@ private:
     void sendSettingsStartGame();
     void setNickname();
     void nicknameAcceptStatus(std::string buffer);
+    void startRound(std::string buffer);
     std::map<std::string, player *> players;
     settings _settings;
 

@@ -96,6 +96,7 @@ Game::Game()
     registerNetEvent("addPlayer", std::bind(&Game::addPlayer, this, std::placeholders::_1));
     registerNetEvent("setPlayers", std::bind(&Game::setPlayers, this, std::placeholders::_1));
     registerNetEvent("nicknameAcceptStatus", std::bind(&Game::nicknameAcceptStatus, this, std::placeholders::_1));
+    registerNetEvent("startRound", std::bind(&Game::startRound, this, std::placeholders::_1));
 }
 
 Game::player::player() : score(0) {}
@@ -204,6 +205,20 @@ void Game::sendSettingsStartGame()
     message += serializeInt(_settings.roundTimeSeconds) + serializeInt(_settings.cardsOnHand) + serializeInt(_settings.pointsToWin);
     message += serializeInt(_settings.blankCardCount) + serializeInt(_settings.cardSets);
     TriggerServerEvent("loadSettingsStartGame", message);
+}
+
+void Game::startRound(std::string buffer)
+{
+    int zegar = deserializeInt(buffer);
+    int ileBlack = deserializeInt(buffer);
+    std::string blackcard = deserializeString(buffer);
+    std::cout << ileBlack << " " << blackcard << std::endl;
+    while (buffer.size() > 0)
+    {
+        int cardID = deserializeInt(buffer);
+        std::string card = deserializeString(buffer);
+        std::cout << cardID << " " << card << std::endl;
+    }
 }
 
 void Game::closeClient()

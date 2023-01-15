@@ -12,7 +12,8 @@
 #include <unistd.h>
 #include <functional>
 #include <cstring>
-#include <sstream>
+#include <vector>
+
 void printText(std::string text) // TODO usunać
 {
     for (char c : text)
@@ -305,7 +306,7 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
         _settings.blankCardCount = deserializeInt(arguments);
         _settings.cardSets = deserializeInt(arguments);
 
-        std::cout << "--------------START---------------" << std::endl;
+        std::cout << "\n--------------START---------------" << std::endl;
         std::cout << "----Gracze----" << std::endl;
         for (auto const &x : clients)
         {
@@ -326,26 +327,32 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
             loadFromFile("decks/set_example1.json");
             std::vector<std::vector<std::string>> deckCalls = getCalls();
             calls.insert(calls.end(), deckCalls.begin(), deckCalls.end());
+            std::vector<std::string> deckResponses = getResponses();
+            responses.insert(responses.end(), deckResponses.begin(), deckResponses.end());
         }
         if (_settings.cardSets & 2)
         {
             loadFromFile("decks/set_example2.json");
             std::vector<std::vector<std::string>> deckCalls = getCalls();
             calls.insert(calls.end(), deckCalls.begin(), deckCalls.end());
+            std::vector<std::string> deckResponses = getResponses();
+            responses.insert(responses.end(), deckResponses.begin(), deckResponses.end());
         }
         if (_settings.cardSets & 4)
         {
             loadFromFile("decks/set_example3.json");
             std::vector<std::vector<std::string>> deckCalls = getCalls();
             calls.insert(calls.end(), deckCalls.begin(), deckCalls.end());
+            std::vector<std::string> deckResponses = getResponses();
+            responses.insert(responses.end(), deckResponses.begin(), deckResponses.end());
         }
 
         // TODO no wszystko co ma się dziać
-        // Losowanie kart
         // Odpalenie timera
         // Wysłanie kto jest czarem
         //? Może to zrobić jako osobną funkcje bo przecież rudny też będą takie
         sendToAll("showGame", "");
+        newRound();
     }
     else
     {
@@ -355,6 +362,49 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
 
 void Game::newRound()
 {
+    std::cout << "\n--------------NEW ROUND---------------" << std::endl;
+    std::srand(unsigned(std::time(nullptr)));
+    int blackCardIndex = std::rand() % calls.size(); // TODO dodać blank cardy
+    std::string blackCard = cardIntoString(calls[blackCardIndex]);
+    std::cout << "Blanks: " << getCallGaps(calls[blackCardIndex]) << " Call: " << blackCard << std::endl;
+    for (auto const &x : clients) // Uzupełnianie kart klientów do określoneej liczby
+    {
+
+        if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
+        {
+            std::vector<int> addedCards;
+            while (x.second->getCardsCount() < _settings.cardsOnHand)
+            {
+                bool noOneHas = false;
+                int whiteCardIndex;
+                while (!noOneHas)
+                {
+                    noOneHas = true;
+                    whiteCardIndex = std::rand() % responses.size();
+                    for (auto const &y : clients)
+                    {
+                        if ((y.second->getStatus() == Client::status::OK or y.second->getStatus() == Client::status::LOST) and y.second->haveCard(whiteCardIndex))
+                        {
+                            noOneHas = false;
+                            break;
+                        }
+                    }
+                }
+                // TODO zapamiętać jaką kartę dodaje i wysłać clientowi
+                x.second->addCard(whiteCardIndex);
+                addedCards.push_back(whiteCardIndex);
+            }
+            std::string arg = serializeInt(_settings.roundTimeSeconds);
+            arg += serializeInt(getCallGaps(calls[blackCardIndex])) + serializeString(blackCard);
+            for (int addedCard : addedCards)
+            {
+                arg += serializeInt(addedCard) + serializeString(responses[addedCard]);
+            }
+            printText(arg);
+            x.second->TriggerClientEvent("startRound", arg);
+        }
+    }
+    //! Jeżeli będzie za mało kart to się zapętli
 }
 
 void Game::closeServer()
