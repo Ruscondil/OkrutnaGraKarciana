@@ -3,7 +3,7 @@
 #include <chrono>
 #include <error.h>
 
-Timer::Timer() : _timerThread() {}
+Timer::Timer() : _stop(false), _seconds(0), _timerThread() {}
 
 int Timer::getTimeLeft() const
 {

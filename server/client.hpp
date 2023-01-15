@@ -16,7 +16,7 @@ public:
         OK = 0,
         LOST = 1
     };
-    Client(int fd);
+    explicit Client(int fd);
     int fd() const;
     void TriggerClientEvent(std::string eventName, std::string arguments);
     void TriggerClientEvent(std::string eventName);

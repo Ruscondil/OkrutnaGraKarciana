@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <error.h>
 
-bool Handler::TriggerEvent(int reciverFd, std::string eventName, std::string arguments)
+bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::string const arguments)
 {
     std::string message;
     std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
@@ -58,7 +58,7 @@ std::string Handler::serializeInt(int value)
     return "\r" + std::string(data, 4);
 }
 
-std::string Handler::serializeString(std::string value)
+std::string Handler::serializeString(std::string const value)
 {
     return "\r" + value;
 }

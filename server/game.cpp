@@ -146,7 +146,7 @@ void Game::removeClient(int clientFd)
     }
 }
 
-void Game::closeClientFd(int clientFd)
+void Game::closeClientFd(int clientFd) const
 {
     epoll_ctl(getEpollFd(), EPOLL_CTL_DEL, clientFd, nullptr);
     shutdown(clientFd, SHUT_RDWR);
@@ -206,8 +206,8 @@ void Game::test(int source, std::string arg)
     sendToAll(arg, serializeInt(2137) + serializeString("floppa friday i soggota"));
 }
 
-void Game::beginServerConnection(int source, std::string arguments)
-{ // TODO zmienainie statusu clienta
+void Game::beginServerConnection(int source, std::string const arguments)
+{
     std::cout << "Autoryzacja gracza ID " << source << std::endl;
     auto client = clients.find(source);
     client->second->setStatus(Client::status::NONICKNAME);
@@ -226,7 +226,6 @@ void Game::setPlayerNickname(int source, std::string arguments)
 {
     auto client = clients.find(source);
     bool recoverClient = false;
-    std::string message;
     std::string nickname = deserializeString(arguments);
     std::cout << "Gracz ID " << source << " ustawia nick na " << nickname << std::endl;
 

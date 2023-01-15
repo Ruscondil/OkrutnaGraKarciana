@@ -11,7 +11,7 @@ public:
     void reserveSocket();
     void setReuseAddr(int sock);
     void setReuseAddr();
-    int getSocket();
+    int getSocket() const;
     void setPort(char *txt);
     void setEpollFd(int epollFd);
     int getEpollFd() const;

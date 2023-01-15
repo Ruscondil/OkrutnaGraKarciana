@@ -19,7 +19,7 @@ Client::Client(int fd) : _fd(fd), _clientStatus(NOTAUTH), _nickname(""), _score(
 
 int Client::fd() const { return _fd; }
 
-bool Client::setNickname(std::string nickname)
+bool Client::setNickname(std::string const nickname)
 {
     if (getStatus() == NONICKNAME)
     {
@@ -38,7 +38,7 @@ void Client::handleEvent(uint32_t events, int _fd)
 {
 }
 
-void Client::TriggerClientEvent(std::string eventName, std::string arguments)
+void Client::TriggerClientEvent(std::string const eventName, std::string const arguments)
 {
     if (!TriggerEvent(_fd, eventName, arguments))
     {
@@ -46,7 +46,7 @@ void Client::TriggerClientEvent(std::string eventName, std::string arguments)
     }
 }
 
-void Client::TriggerClientEvent(std::string eventName)
+void Client::TriggerClientEvent(std::string const eventName)
 {
     TriggerClientEvent(eventName, "");
 }

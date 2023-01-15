@@ -27,7 +27,7 @@ void connectionManager::setReuseAddr()
     setReuseAddr(_servFd);
 }
 
-int connectionManager::getSocket()
+int connectionManager::getSocket() const
 {
     return _servFd;
 }

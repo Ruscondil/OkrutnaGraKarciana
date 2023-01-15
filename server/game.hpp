@@ -40,7 +40,7 @@ public:
     virtual void handleEvent(uint32_t events, int _fd) override;
     void newClient(int clientFd);
     void removeClient(int clientFd);
-    void closeClientFd(int clientFd);
+    void closeClientFd(int clientFd) const;
     std::map<int, Client *>::iterator changeClientId(int clientFd, int newClientFD);
     std::map<int, Client *>::iterator changeClientId(int clientFd);
     void sendToAll(std::string eventName, std::string arguments);
