@@ -17,13 +17,29 @@ void printText(std::string text) // TODO usunać
 {
     for (char c : text)
     {
-        if (c == '\n')
+        if (c == '\a')
+        {
+            std::cout << "\\a";
+        }
+        else if (c == '\t')
+        {
+            std::cout << "\\t";
+        }
+        else if (c == '\n')
         {
             std::cout << "\\n";
         }
         else if (c == '\r')
         {
             std::cout << "\\r";
+        }
+        else if (c == '\\')
+        {
+            std::cout << "\\";
+        }
+        else if (c == '\?')
+        {
+            std::cout << "\?";
         }
         else
         {
@@ -46,9 +62,9 @@ void Game::handleEvent(uint32_t events, int source)
 {
     if (events & EPOLLIN)
     {
-        char buffer[256] = "";
+        char buffer[1024] = "";
 
-        ssize_t count = read(source, buffer, 256);
+        ssize_t count = read(source, buffer, 1024);
         std::string s_buffer;
         s_buffer.resize(count);
         memcpy(&s_buffer[0], buffer, count);

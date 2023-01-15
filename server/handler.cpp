@@ -4,17 +4,18 @@
 #include <iostream>
 #include <unistd.h>
 #include <error.h>
+#include <sstream>
 
 bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::string const arguments)
 {
     std::string message;
     std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
 
-    message = eventName + arguments + '\n';
-
+    message = eventName + arguments + '\?';
+    std::cout << "Size: " << message.size() << std::endl;
     int count = message.length();
 
-    char test[256]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
+    char test[1024]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
     memcpy(test, message.data(), message.size());
     return count != ::write(reciverFd, test, count);
 }
@@ -49,7 +50,7 @@ EventFunction Handler::getNetEventCallback(std::string eventName)
         return eventInfo[eventName];
     return 0;
 }
-
+/*
 std::string Handler::serializeInt(int value)
 {
     char data[4];
@@ -57,13 +58,21 @@ std::string Handler::serializeInt(int value)
     memcpy(data, &value, 4);
     return "\r" + std::string(data, 4);
 }
+ */
+
+std::string Handler::serializeInt(int value)
+{
+    std::stringstream ss;
+    ss << value;
+    return "\r" + ss.str();
+}
 
 std::string Handler::serializeString(std::string const value)
 {
     return "\r" + value;
 }
 
-int Handler::deserializeInt(std::string &buffer)
+/* int Handler::deserializeInt(std::string &buffer)
 {
     // Get the data from the buffer (skip the space preceding it)
     std::string data = buffer.substr(0, 4);
@@ -79,6 +88,15 @@ int Handler::deserializeInt(std::string &buffer)
     buffer.erase(0, 5);
 
     return value;
+} */
+
+int Handler::deserializeInt(std::string &buffer)
+{
+    std::string s_value = deserializeString(buffer);
+    std::stringstream ss(s_value);
+    int value;
+    ss >> value;
+    return value;
 }
 
 std::string Handler::deserializeString(std::string &buffer)
@@ -86,7 +104,7 @@ std::string Handler::deserializeString(std::string &buffer)
     std::string text;
     for (int i = 0; i < (int)buffer.size(); i++)
     {
-        if (buffer[i] == '\r' or buffer[i] == '\n')
+        if (buffer[i] == '\r' or buffer[i] == '\?')
         {
             buffer.erase(0, i + 1); // delete first word and space from buffer
             return text;
@@ -110,7 +128,7 @@ std::string Handler::getArguments(std::string &buffer)
     std::string text;
     for (int i = 0; i < (int)buffer.size(); i++)
     {
-        if (buffer[i] == '\n')
+        if (buffer[i] == '\?')
         {
             buffer.erase(0, i + 1); // delete first word and space from buffer
             return text;
