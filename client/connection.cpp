@@ -16,7 +16,7 @@ ServerConnection::ServerConnection(char *addr, char *port)
 }
 
 ServerConnection::~ServerConnection() // destuktor
-{
+{   //TODO chyba useless
     // epoll_ctl(epollFd, EPOLL_CTL_DEL, _fd, nullptr);
     // shutdown(_fd, SHUT_RDWR);
     close(_sock);

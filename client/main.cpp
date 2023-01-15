@@ -14,7 +14,6 @@
 // #include <netinet/in.h>
 // #include <netdb.h>
 // #include <thread>
-// TODO dodać zamykaniee wszędzie deskryptorów
 Game game;
 
 void ctrl_c(int elo)
