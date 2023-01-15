@@ -14,9 +14,12 @@ set(SOURCES
     main.cpp 
     connection.cpp 
     timer.cpp
+    cardImport.cpp
 )
 
 add_executable(main ${SOURCES})
+
+target_link_libraries(main jsoncpp)
 
 add_custom_target(cppcheck
     COMMAND cppcheck --enable=all --std=c++17 -I include/ ${SOURCES}

@@ -3,9 +3,12 @@
 #include "handler.hpp"
 #include "connection.hpp"
 #include "timer.hpp"
+#include "cardImport.hpp"
 
 #include <map>
-class Game : public Handler, public connectionManager, public Timer
+#include <vector>
+
+class Game : public Handler, public connectionManager, public Timer, public CardImporter
 {
 private:
     struct settings
@@ -18,6 +21,10 @@ private:
         int cardSets;
         // TODO wektor wektorów czarnych kart i białych
     };
+
+    std::vector<std::vector<std::string>> calls;
+    std::vector<std::string> responses;
+
     settings _settings;
     std::map<int, Client *> clients;
     int gameCzar;

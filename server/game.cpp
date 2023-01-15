@@ -305,6 +305,25 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
         std::cout << "blankCardCount: " << _settings.blankCardCount << std::endl;
         std::cout << "cardSets: " << _settings.cardSets << std::endl;
 
+        if (_settings.cardSets & 1)
+        {
+            loadFromFile("decks/set_example1.json");
+            std::vector<std::vector<std::string>> deckCalls = getCalls();
+            calls.insert(calls.end(), deckCalls.begin(), deckCalls.end());
+        }
+        if (_settings.cardSets & 2)
+        {
+            loadFromFile("decks/set_example2.json");
+            std::vector<std::vector<std::string>> deckCalls = getCalls();
+            calls.insert(calls.end(), deckCalls.begin(), deckCalls.end());
+        }
+        if (_settings.cardSets & 4)
+        {
+            loadFromFile("decks/set_example3.json");
+            std::vector<std::vector<std::string>> deckCalls = getCalls();
+            calls.insert(calls.end(), deckCalls.begin(), deckCalls.end());
+        }
+
         // TODO no wszystko co ma się dziać
         // Losowanie kart
         // Odpalenie timera
