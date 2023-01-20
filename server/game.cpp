@@ -100,7 +100,6 @@ void Game::handleEvent(uint32_t events, int source)
         else
         {
             events |= EPOLLERR;
-            printf("Connection lost with %i\n", source);
             lostClient(source);
         }
     }
@@ -121,19 +120,31 @@ Game::Game() : gameStatus(LOBBY)
 void Game::lostClient(int source)
 {
     auto client = clients.find(source);
-    if (gameStatus == ROUND)
-    {
-        checkIfEveryoneReady();
-    }
-
+    std::cout << "Stracono połączenie z graczem ID " << std::endl;
     if (client != clients.end())
     {
         if (gameStatus != LOBBY and client->second->getStatus() != Client::status::NOTAUTH and client->second->getStatus() != Client::status::NONICKNAME)
         {
             client->second->setStatus(Client::status::LOST);
             changeClientId(source);
-
             closeClientFd(source);
+            if (gameCzar == source)
+            {
+
+                if (gameStatus == ROUND or gameStatus == ROUNDSUM)
+                {
+
+                    // TODO sprawdzić
+                    newRound();
+                }
+            }
+            else
+            {
+                if (gameStatus == ROUND)
+                {
+                    checkIfEveryoneReady();
+                }
+            }
         }
         else
         {
@@ -306,6 +317,7 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
     if (gameStatus != LOBBY)
     {
         error(0, 0, "Gracz ID %i próbował ponownie wystartować grę", source);
+        return;
     }
     if (source == gameCzar)
     {
@@ -398,6 +410,8 @@ int Game::newCardCzar(int oldCzar)
 
 void Game::newRound()
 {
+    stopTimer();
+    destroyTimer();
     gameStatus = ROUND;
     std::cout << "\n--------------NEW ROUND---------------" << std::endl;
     std::srand(unsigned(std::time(nullptr)));
@@ -415,11 +429,13 @@ void Game::newRound()
     {
         std::cout << "Card Czarem zostaje GRACZ ID " << gameCzar << std::endl;
     }
+    // TODO Wybieranie card czara
     auto czar = clients.find(gameCzar); // TODO dać jakieś zabezpieczenie może
     // Uzupełnianie kart klientów do określoneej liczby
+
     for (auto const &x : clients)
     {
-
+        x.second->clearPickedCards(); // czyszczenie zdobytych kart
         if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
         {
             std::vector<int> addedCards;
@@ -454,6 +470,7 @@ void Game::newRound()
             x.second->TriggerClientEvent("startRound", arg);
         }
     }
+
     startTimer(_settings.roundTimeSeconds);
     //! Jeżeli będzie za mało kart to się zapętli
 }
@@ -465,9 +482,9 @@ void Game::clientGetReady(int source, std::string arguments)
     while (arguments.size() > 0)
     {
         int cardID = deserializeInt(arguments);
-        if (!client->second->haveCard(cardID))
+        if (!client->second->pickCard(cardID))
         {
-            error(0, 0, "Gracza ID %i próbuję wykorzystać kartę, której nie posiada", source);
+            error(1, 0, "Gracz ID %i próbuję wykorzystać kartę, której nie posiada", source);
             return;
         }
 
@@ -515,12 +532,25 @@ void Game::timerDone()
 void Game::startSummary()
 {
     gameStatus = ROUNDSUM;
-
+    std::string message;
+    for (auto const &x : clients)
+    {
+        if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
+        {
+            message += serializeInt(x.first);
+            int card = x.second->popPickedCard();
+            while (card != -1)
+            {
+                message += serializeString(responses[card]);
+                card = x.second->popPickedCard();
+            }
+        }
+    }
     for (auto const &x : clients)
     {
         if (x.second->getStatus() == Client::status::OK)
         {
-            x.second->TriggerClientEvent("showRoundSum");
+            x.second->TriggerClientEvent("receiveAnswers", message);
         }
     }
 
@@ -531,6 +561,7 @@ void Game::safeCloseServer()
 {
     for (auto const &client : clients)
         delete client.second;
+    stopTimer();
     destroyTimer();
     connectionManager::closeServer();
 }

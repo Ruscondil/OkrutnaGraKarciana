@@ -101,3 +101,35 @@ bool Client::getReady()
 {
     return _isReady;
 }
+
+bool Client::pickCard(int id)
+{
+    if (!haveCard(id))
+    {
+        return false;
+    }
+    else
+    {
+        cardsIDPicked.push(id);
+        return true;
+    }
+}
+void Client::clearPickedCards()
+{
+    while (!cardsIDPicked.empty())
+    {
+        cardsIDPicked.pop();
+    }
+}
+
+int Client::popPickedCard()
+{
+    if (!cardsIDPicked.empty())
+    {
+        int card = cardsIDPicked.front();
+        cardsIDPicked.pop();
+        return card;
+    }
+    else
+        return -1;
+}
