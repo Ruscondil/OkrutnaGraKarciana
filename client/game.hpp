@@ -19,10 +19,11 @@ private:
         int pointsToWin;
         int blankCardCount;
         int cardSets;
-        // TODO wektor wektorów czarnych kart i białych
     };
     std::string _cardCzar;
     bool _isCardCzar;
+    int _cardsCountToPick;
+
     struct player
     {
         player();
@@ -42,6 +43,7 @@ private:
     void getReady();
     void receiveAnswers(std::string buffer);
     void pickAnswer();
+    void showGame(std::string buffer);
 
     std::map<std::string, player *> players;
     settings _settings;

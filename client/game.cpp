@@ -95,6 +95,7 @@ Game::Game()
     registerNetEvent("addPlayer", std::bind(&Game::addPlayer, this, std::placeholders::_1));
     registerNetEvent("setPlayers", std::bind(&Game::setPlayers, this, std::placeholders::_1));
     registerNetEvent("nicknameAcceptStatus", std::bind(&Game::nicknameAcceptStatus, this, std::placeholders::_1));
+    registerNetEvent("showGame", std::bind(&Game::showGame, this, std::placeholders::_1));
     registerNetEvent("startRound", std::bind(&Game::startRound, this, std::placeholders::_1));
     registerNetEvent("updateTimer", std::bind(&Game::updateTimer, this, std::placeholders::_1));
     registerNetEvent("receiveAnswers", std::bind(&Game::receiveAnswers, this, std::placeholders::_1));
@@ -199,15 +200,19 @@ void Game::sendSettingsStartGame()
     TriggerServerEvent("loadSettingsStartGame", message);
 }
 
+void Game::showGame(std::string buffer)
+{
+}
+
 void Game::startRound(std::string buffer)
 {
     _gameClock = deserializeInt(buffer);
     _cardCzar = deserializeString(buffer);
     _isCardCzar = (_cardCzar == _nickname);
     std::cout << "Nick: " << _cardCzar << std::endl;
-    int ileBlack = deserializeInt(buffer);
+    _cardsCountToPick = deserializeInt(buffer);
     std::string blackcard = deserializeString(buffer);
-    std::cout << ileBlack << " " << blackcard << std::endl;
+    std::cout << _cardsCountToPick << " " << blackcard << std::endl;
     while (buffer.size() > 0)
     {
         int cardID = deserializeInt(buffer);
@@ -233,7 +238,7 @@ void Game::getReady()
 {
     std::string message;
     auto it = cards.begin();
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < _cardsCountToPick; i++)
     {
         message += serializeInt(it->first);
         it++;
@@ -243,8 +248,10 @@ void Game::getReady()
 }
 
 void Game::receiveAnswers(std::string buffer)
-{ // TODO wymyślić jak dzielić odpowiedzi na od danego gracza
-  // Może na początku wysłać ile jest black kart a potem ściągać odp
+{
+    printText(buffer);
+    // TODO wymyślić jak dzielić odpowiedzi na od danego gracza
+    // Może na początku wysłać ile jest black kart a potem ściągać odp
 }
 
 void Game::pickAnswer()
