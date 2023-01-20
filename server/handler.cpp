@@ -6,13 +6,16 @@
 #include <error.h>
 #include <sstream>
 
-bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::string const arguments)
+bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::string arguments)
 {
     std::string message;
     std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
-
-    message = eventName + arguments + '\?';
-    std::cout << "Size: " << message.size() << std::endl;
+    if (arguments == "")
+    {
+        arguments = "\r";
+    }
+    message = eventName + arguments + '\t';
+    // std::cout << "Size: " << message.size() << std::endl;
     int count = message.length();
 
     char test[1024]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
@@ -104,7 +107,7 @@ std::string Handler::deserializeString(std::string &buffer)
     std::string text;
     for (int i = 0; i < (int)buffer.size(); i++)
     {
-        if (buffer[i] == '\r' or buffer[i] == '\?')
+        if (buffer[i] == '\r' or buffer[i] == '\t')
         {
             buffer.erase(0, i + 1); // delete first word and space from buffer
             return text;
@@ -128,7 +131,7 @@ std::string Handler::getArguments(std::string &buffer)
     std::string text;
     for (int i = 0; i < (int)buffer.size(); i++)
     {
-        if (buffer[i] == '\?')
+        if (buffer[i] == '\t')
         {
             buffer.erase(0, i + 1); // delete first word and space from buffer
             return text;

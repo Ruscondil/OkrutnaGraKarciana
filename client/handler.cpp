@@ -6,12 +6,15 @@
 #include <error.h>
 #include <sstream>
 
-bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::string const arguments)
+bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::string arguments)
 {
     std::string message;
     std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
-
-    message = eventName + arguments + '\?';
+    if (arguments == "")
+    {
+        arguments = "\r";
+    }
+    message = eventName + arguments + '\t';
 
     int count = message.length();
 
@@ -104,7 +107,7 @@ std::string Handler::deserializeString(std::string &buffer)
     std::string text;
     for (int i = 0; i < (int)buffer.size(); i++)
     {
-        if (buffer[i] == '\r' or buffer[i] == '\?')
+        if (buffer[i] == '\r' or buffer[i] == '\t')
         {
             buffer.erase(0, i + 1); // delete first word and space from buffer
             return text;
@@ -128,7 +131,7 @@ std::string Handler::getArguments(std::string &buffer)
     std::string text;
     for (int i = 0; i < (int)buffer.size(); i++)
     {
-        if (buffer[i] == '\?')
+        if (buffer[i] == '\t')
         {
             buffer.erase(0, i + 1); // delete first word and space from buffer
             return text;
