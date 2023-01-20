@@ -90,7 +90,6 @@ void Game::handleEvent(uint32_t events)
 
 Game::Game()
 {
-    registerNetEvent("TEST", std::bind(&Game::test, this, std::placeholders::_1));
     registerNetEvent("beginClientConnection", std::bind(&Game::beginClientConnection, this, std::placeholders::_1));
     registerNetEvent("showNicknameChoice", std::bind(&Game::showNicknameChoice, this, std::placeholders::_1));
     registerNetEvent("addPlayer", std::bind(&Game::addPlayer, this, std::placeholders::_1));
@@ -104,16 +103,6 @@ Game::Game()
 Game::player::player() : score(0) {}
 
 Game::settings::settings() : roundTimeSeconds(90), cardsOnHand(6), pointsToWin(3), blankCardCount(5), cardSets(6) {}
-
-void Game::test(std::string a)
-{
-    int test;
-    std::string test2;
-    // printText(a);
-    test = deserializeInt(a);
-    test2 = deserializeString(a);
-    std::cout << test << " | " << test2 << std::endl;
-}
 
 void Game::TriggerServerEvent(std::string const eventName, std::string arguments)
 {

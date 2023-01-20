@@ -30,7 +30,6 @@ private:
     };
     std::map<int, std::string> cards;
 
-    void test(std::string);
     void beginClientConnection(std::string buffer);
     void showNicknameChoice(std::string buffer);
     void setPlayers(std::string buffer);
