@@ -37,6 +37,7 @@ void Timer::countdown()
         std::chrono::duration<double> elapsed = now - start;
         if (elapsed.count() >= 1)
         {
+            secondPassed(_seconds);
             _seconds--;
             start = now;
         }
@@ -50,14 +51,19 @@ void Timer::timerDone()
 {
 }
 
-void Timer::secondPassed()
+void Timer::secondPassed(int seconds)
 {
 }
 
-Timer::~Timer()
+void Timer::destroyTimer()
 {
     if (_timerThread.joinable())
     {
         _timerThread.join();
     }
+}
+
+Timer::~Timer()
+{
+    destroyTimer();
 }

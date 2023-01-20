@@ -14,6 +14,7 @@ public:
     void startTimer(int seconds);
     void stopTimer();
     virtual void timerDone();
-    virtual void secondPassed();
+    virtual void secondPassed(int);
+    void destroyTimer();
     ~Timer();
 };
