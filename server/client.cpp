@@ -92,3 +92,12 @@ bool Client::haveCard(int id)
 {
     return cardsID.find(id) != cardsID.end();
 }
+
+void Client::setReady(bool value)
+{
+    _isReady = value;
+}
+bool Client::getReady()
+{
+    return _isReady;
+}

@@ -40,11 +40,15 @@ public:
     int getCardsCount();
     bool haveCard(int id);
 
+    void setReady(bool);
+    bool getReady();
+
 private:
     int _fd;
 
     status _clientStatus;
     std::string _nickname;
+    bool _isReady;
     int _score;
     std::set<int> cardsID;
 };
