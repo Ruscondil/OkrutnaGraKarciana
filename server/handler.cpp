@@ -15,7 +15,6 @@ bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::stri
         arguments = "\r";
     }
     message = eventName + arguments + '\t';
-    // std::cout << "Size: " << message.size() << std::endl;
     int count = message.length();
 
     char test[1024]; // TODO no zmienić by nie był test i dać size taki jaki powinien być

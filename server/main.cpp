@@ -19,7 +19,7 @@ int epollFd;
 
 void ctrl_c(int elo)
 {
-    game.closeServer();
+    game.safeCloseServer();
 }
 
 class ServHandler : Handler
