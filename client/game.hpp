@@ -9,7 +9,8 @@ class Game : public Handler, public ServerConnection
 private:
     int _clientServerFd;
     bool _isReady;
-    int _round;
+    std::string _nickname;
+    int _gameClock;
     struct settings
     {
         settings();
@@ -20,12 +21,14 @@ private:
         int cardSets;
         // TODO wektor wektorów czarnych kart i białych
     };
-    int _cardCzar;
+    std::string _cardCzar;
+    bool _isCardCzar;
     struct player
     {
         player();
         int score;
     };
+    std::map<int, std::string> cards;
 
     void test(std::string);
     void beginClientConnection(std::string buffer);
@@ -36,6 +39,11 @@ private:
     void setNickname();
     void nicknameAcceptStatus(std::string buffer);
     void startRound(std::string buffer);
+    void updateTimer(std::string buffer);
+    void getReady();
+    void receiveAnswers(std::string buffer);
+    void pickAnswer();
+
     std::map<std::string, player *> players;
     settings _settings;
 

@@ -35,7 +35,7 @@ void printText(std::string text) // TODO usunać
         }
         else if (c == '\?')
         {
-            std::cout << "\?";
+            std::cout << "\\?";
         }
         else
 
@@ -52,7 +52,7 @@ void Game::handleEvent(uint32_t events)
     {
         char buffer[1024] = "";
         ssize_t count = read(getSocket(), buffer, 1024);
-        // std::cout << "Count: " << count << std::endl;
+        std::cout << "Count: " << count << std::endl;
         std::string s_buffer; // copying every bit of char to string
         s_buffer.resize(count);
         memcpy(&s_buffer[0], buffer, count);
@@ -63,6 +63,7 @@ void Game::handleEvent(uint32_t events)
             {
                 // printText(s_buffer);
                 std::string eventName = getEventName(s_buffer);
+                std::cout << "EVENT: " << eventName << std::endl;
                 std::string arguments = getArguments(s_buffer);
                 // printText(s_buffer);
                 EventFunction callback = getNetEventCallback(eventName);
@@ -97,11 +98,13 @@ Game::Game()
     registerNetEvent("setPlayers", std::bind(&Game::setPlayers, this, std::placeholders::_1));
     registerNetEvent("nicknameAcceptStatus", std::bind(&Game::nicknameAcceptStatus, this, std::placeholders::_1));
     registerNetEvent("startRound", std::bind(&Game::startRound, this, std::placeholders::_1));
+    registerNetEvent("updateTimer", std::bind(&Game::updateTimer, this, std::placeholders::_1));
+    registerNetEvent("receiveAnswers", std::bind(&Game::receiveAnswers, this, std::placeholders::_1));
 }
 
 Game::player::player() : score(0) {}
 
-Game::settings::settings() : roundTimeSeconds(90), cardsOnHand(6), pointsToWin(3), blankCardCount(5), cardSets(1) {}
+Game::settings::settings() : roundTimeSeconds(90), cardsOnHand(6), pointsToWin(3), blankCardCount(5), cardSets(6) {}
 
 void Game::test(std::string a)
 {
@@ -113,7 +116,7 @@ void Game::test(std::string a)
     std::cout << test << " | " << test2 << std::endl;
 }
 
-void Game::TriggerServerEvent(std::string eventName, std::string arguments)
+void Game::TriggerServerEvent(std::string const eventName, std::string arguments)
 {
     // printText(message + arguments);
     TriggerEvent(getSocket(), eventName, serializeInt(_clientServerFd) + arguments);
@@ -154,7 +157,7 @@ void Game::setNickname()
         else
             zle = false;
     }
-
+    _nickname = nickname;
     TriggerServerEvent("setPlayerNickname", serializeString(nickname));
     if (nickname == "start")
     {
@@ -164,6 +167,7 @@ void Game::setNickname()
 
 void Game::nicknameAcceptStatus(std::string buffer)
 {
+    printText(buffer);
     std::string message = deserializeString(buffer);
 
     if (message == "ok")
@@ -209,7 +213,10 @@ void Game::sendSettingsStartGame()
 
 void Game::startRound(std::string buffer)
 {
-    int zegar = deserializeInt(buffer);
+    _gameClock = deserializeInt(buffer);
+    _cardCzar = deserializeString(buffer);
+    _isCardCzar = (_cardCzar == _nickname);
+    std::cout << "Nick: " << _cardCzar << std::endl;
     int ileBlack = deserializeInt(buffer);
     std::string blackcard = deserializeString(buffer);
     std::cout << ileBlack << " " << blackcard << std::endl;
@@ -217,7 +224,49 @@ void Game::startRound(std::string buffer)
     {
         int cardID = deserializeInt(buffer);
         std::string card = deserializeString(buffer);
-        std::cout << cardID << " " << card << std::endl;
+        cards[cardID] = card; // TODO to chyba i tak będzie wysyłanie i przechowowywane po stronie frontu
+
+        std::cout << card << std::endl;
+    }
+    getReady();
+}
+
+void Game::updateTimer(std::string buffer)
+{
+    int newTime = deserializeInt(buffer);
+    if (newTime < _gameClock)
+    {
+        std::cout << newTime << std::endl;
+        _gameClock = newTime;
+    }
+}
+
+void Game::getReady()
+{
+    std::string message;
+    auto it = cards.begin();
+    for (int i = 0; i < 1; i++)
+    {
+        message += serializeInt(it->first);
+        it++;
+    }
+
+    TriggerServerEvent("clientGetReady", message);
+}
+
+void Game::receiveAnswers(std::string buffer)
+{ // TODO wymyślić jak dzielić odpowiedzi na od danego gracza
+  // Może na początku wysłać ile jest black kart a potem ściągać odp
+}
+
+void Game::pickAnswer()
+{
+    if (_isCardCzar)
+    {
+    }
+    else
+    {
+        error(0, 0, "Próbowano wybrać odpowiedź, nie będąc Card Czarem");
     }
 }
 
