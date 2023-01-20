@@ -44,6 +44,7 @@ private:
     virtual void secondPassed(int) override;
     virtual void timerDone() override;
     void lostClient(int);
+    int newCardCzar(int oldCzar);
     void startSummary();
     void returnedPlayer(int);
     void checkIfEveryoneReady();

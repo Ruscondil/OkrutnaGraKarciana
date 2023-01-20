@@ -369,6 +369,33 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
     }
 }
 
+int Game::newCardCzar(int oldCzar)
+{
+    auto it = clients.find(oldCzar);
+    if (it == clients.end())
+    {
+        for (auto first = clients.begin(); first != clients.end(); ++first)
+        {
+            if (first->second->getStatus() == Client::status::OK)
+                return first->first;
+        }
+    }
+    else
+    {
+        for (auto next = ++it; next != clients.end(); ++next)
+        {
+            if (next->second->getStatus() == Client::status::OK)
+                return next->first;
+        }
+        for (auto first = clients.begin(); first != it; ++first)
+        {
+            if (first->second->getStatus() == Client::status::OK)
+                return first->first;
+        }
+    }
+    return -1; // może być -1 bo <0 w mapie przyjmują tylko LOST
+}
+
 void Game::newRound()
 {
     gameStatus = ROUND;
@@ -377,7 +404,17 @@ void Game::newRound()
     int blackCardIndex = std::rand() % calls.size(); // TODO dodać blank cardy
     std::string blackCard = cardIntoString(calls[blackCardIndex]);
     std::cout << "Blanks: " << getCallGaps(calls[blackCardIndex]) << " Call: " << blackCard << std::endl;
-    // Wybieranie card czara
+    gameCzar = newCardCzar(gameCzar);
+
+    if (gameCzar < 0)
+    {
+        std::cout << "Nie można było znaleźć kolejnego Card Czara, zamykam grę" << std::endl;
+        safeCloseServer();
+    }
+    else
+    {
+        std::cout << "Card Czarem zostaje GRACZ ID " << gameCzar << std::endl;
+    }
     auto czar = clients.find(gameCzar); // TODO dać jakieś zabezpieczenie może
     // Uzupełnianie kart klientów do określoneej liczby
     for (auto const &x : clients)
