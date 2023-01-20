@@ -100,27 +100,8 @@ void Game::handleEvent(uint32_t events, int source)
         else
         {
             events |= EPOLLERR;
-
             printf("Connection lost with %i\n", source);
-            auto it = clients.find(source);
-            if (it != clients.end())
-            {
-                if (gameStatus != LOBBY and it->second->getStatus() != Client::status::NOTAUTH and it->second->getStatus() != Client::status::NONICKNAME)
-                {
-                    it->second->setStatus(Client::status::LOST);
-                    changeClientId(source);
-
-                    closeClientFd(source);
-                }
-                else
-                {
-                    removeClient(source);
-                }
-            }
-            else
-            {
-                closeClientFd(source);
-            }
+            lostClient(source);
         }
     }
     if (events & ~EPOLLIN)
@@ -131,10 +112,38 @@ void Game::handleEvent(uint32_t events, int source)
 
 Game::Game() : gameStatus(LOBBY)
 {
-    registerNetEvent("testowanie", std::bind(&Game::test, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("beginServerConnection", std::bind(&Game::beginServerConnection, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("setPlayerNickname", std::bind(&Game::setPlayerNickname, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("loadSettingsStartGame", std::bind(&Game::loadSettingsStartGame, this, std::placeholders::_1, std::placeholders::_2));
+    registerNetEvent("clientGetReady", std::bind(&Game::clientGetReady, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void Game::lostClient(int source)
+{
+    auto client = clients.find(source);
+    if (gameStatus == ROUND)
+    {
+        checkIfEveryoneReady();
+    }
+
+    if (client != clients.end())
+    {
+        if (gameStatus != LOBBY and client->second->getStatus() != Client::status::NOTAUTH and client->second->getStatus() != Client::status::NONICKNAME)
+        {
+            client->second->setStatus(Client::status::LOST);
+            changeClientId(source);
+
+            closeClientFd(source);
+        }
+        else
+        {
+            removeClient(source);
+        }
+    }
+    else
+    {
+        closeClientFd(source);
+    }
 }
 
 void Game::newClient(int clientFd)
@@ -213,16 +222,6 @@ void Game::sendToAllBut(int butID, std::string eventName, std::string arguments)
     }
 }
 
-void Game::test(int source, std::string arg)
-{
-    arg = "TEST";
-
-    // printText(buffer);
-    //  std::cout << "CZEMU ZAWSZE SA PROBLEMY" << std::endl;
-
-    sendToAll(arg, serializeInt(2137) + serializeString("floppa friday i soggota"));
-}
-
 void Game::beginServerConnection(int source, std::string const arguments)
 {
     std::cout << "Autoryzacja gracza ID " << source << std::endl;
@@ -253,6 +252,8 @@ void Game::setPlayerNickname(int source, std::string arguments)
             if (x.second->getStatus() == Client::status::LOST)
             {
                 std::cout << "Gracz ID " << source << " zostaje przywrócony do gry." << std::endl;
+                // TODO funkcja by przesłała graczowi najważniejsze info o grze
+                returnedPlayer(source);
                 delete client->second; // TODO zrobić na na funkcje czy ciś
                 clients.erase(client);
                 client = changeClientId(x.first, source);
@@ -295,9 +296,17 @@ void Game::setPlayerNickname(int source, std::string arguments)
     client->second->setStatus(Client::status::OK);
 }
 
+void Game::returnedPlayer(int source)
+{
+    // TODO
+}
+
 void Game::loadSettingsStartGame(int source, std::string arguments)
 {
-
+    if (gameStatus != LOBBY)
+    {
+        error(0, 0, "Gracz ID %i próbował ponownie wystartować grę", source);
+    }
     if (source == gameCzar)
     {
         _settings.roundTimeSeconds = deserializeInt(arguments);
@@ -362,12 +371,16 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
 
 void Game::newRound()
 {
+    gameStatus = ROUND;
     std::cout << "\n--------------NEW ROUND---------------" << std::endl;
     std::srand(unsigned(std::time(nullptr)));
     int blackCardIndex = std::rand() % calls.size(); // TODO dodać blank cardy
     std::string blackCard = cardIntoString(calls[blackCardIndex]);
     std::cout << "Blanks: " << getCallGaps(calls[blackCardIndex]) << " Call: " << blackCard << std::endl;
-    for (auto const &x : clients) // Uzupełnianie kart klientów do określoneej liczby
+    // Wybieranie card czara
+    auto czar = clients.find(gameCzar); // TODO dać jakieś zabezpieczenie może
+    // Uzupełnianie kart klientów do określoneej liczby
+    for (auto const &x : clients)
     {
 
         if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
@@ -394,22 +407,93 @@ void Game::newRound()
                 x.second->addCard(whiteCardIndex);
                 addedCards.push_back(whiteCardIndex);
             }
-            std::string arg = serializeInt(_settings.roundTimeSeconds);
+            std::string arg = serializeInt(_settings.roundTimeSeconds) + serializeString(czar->second->getNickname());
             arg += serializeInt(getCallGaps(calls[blackCardIndex])) + serializeString(blackCard);
             for (int addedCard : addedCards)
             {
                 arg += serializeInt(addedCard) + serializeString(responses[addedCard]);
             }
-            printText(arg);
+            // printText(arg);
             x.second->TriggerClientEvent("startRound", arg);
         }
     }
+    startTimer(_settings.roundTimeSeconds);
     //! Jeżeli będzie za mało kart to się zapętli
 }
 
-void Game::closeServer()
+void Game::clientGetReady(int source, std::string arguments)
+{ // TODO dawać register i clear event
+    auto client = clients.find(source);
+    std::cout << "Gracz ID " << source << " " << client->second->getNickname() << " jest gotowy z odpowiedzami" << std::endl;
+    while (arguments.size() > 0)
+    {
+        int cardID = deserializeInt(arguments);
+        if (!client->second->haveCard(cardID))
+        {
+            error(0, 0, "Gracza ID %i próbuję wykorzystać kartę, której nie posiada", source);
+            return;
+        }
+
+        std::cout << responses[cardID] << std::endl;
+    }
+    client->second->setReady(true);
+    checkIfEveryoneReady();
+}
+
+void Game::checkIfEveryoneReady()
+{
+    bool everyoneReady = true;
+    for (auto const &c : clients)
+    {
+        if (c.second->getStatus() == Client::status::OK and !c.second->getReady())
+        {
+            everyoneReady = false;
+            break;
+        }
+    }
+    if (everyoneReady)
+    {
+        std::cout << "Wszyscy gracze zgłosili gotowość, kończę rundę" << std::endl;
+        stopTimer();
+        startSummary();
+    }
+}
+
+void Game::secondPassed(int timeLeft)
+{
+    for (auto const &client : clients)
+    {
+        if (client.second->getStatus() == Client::status::OK)
+        {
+            client.second->TriggerClientEvent("updateTimer", serializeInt(timeLeft));
+        }
+    }
+}
+
+void Game::timerDone()
+{
+    startSummary();
+}
+
+void Game::startSummary()
+{
+    gameStatus = ROUNDSUM;
+
+    for (auto const &x : clients)
+    {
+        if (x.second->getStatus() == Client::status::OK)
+        {
+            x.second->TriggerClientEvent("showRoundSum");
+        }
+    }
+
+    // TODO przerobić sendToAll
+}
+
+void Game::safeCloseServer()
 {
     for (auto const &client : clients)
         delete client.second;
+    destroyTimer();
     connectionManager::closeServer();
 }

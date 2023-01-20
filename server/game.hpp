@@ -37,10 +37,16 @@ private:
     };
     status gameStatus;
     void beginServerConnection(int, std::string arguments);
-    void test(int, std ::string);
     void setPlayerNickname(int, std::string);
     void loadSettingsStartGame(int, std::string);
     void newRound();
+    void clientGetReady(int source, std::string arguments);
+    virtual void secondPassed(int) override;
+    virtual void timerDone() override;
+    void lostClient(int);
+    void startSummary();
+    void returnedPlayer(int);
+    void checkIfEveryoneReady();
 
 public:
     Game();
@@ -52,5 +58,5 @@ public:
     std::map<int, Client *>::iterator changeClientId(int clientFd);
     void sendToAll(std::string eventName, std::string arguments);
     void sendToAllBut(int butID, std::string eventName, std::string arguments);
-    void closeServer();
+    void safeCloseServer();
 };
