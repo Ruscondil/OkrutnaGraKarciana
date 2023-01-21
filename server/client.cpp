@@ -133,3 +133,8 @@ int Client::popPickedCard()
     else
         return -1;
 }
+
+int Client::pickedCardsCount()
+{
+    return cardsIDPicked.size();
+}

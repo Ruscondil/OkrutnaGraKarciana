@@ -8,6 +8,8 @@
 #include <functional>  //std::bind
 #include <cstring>     //memcpy
 #include <error.h>
+#include <vector>
+#include <sstream>
 
 void printText(std::string text) // TODO usunać
 {
@@ -88,6 +90,33 @@ void Game::handleEvent(uint32_t events)
     }
 }
 
+void Game::handleInput(std::string buffer)
+{
+    if (inputCallback)
+    {
+        inputCallback(buffer);
+    }
+    // std::cout << "TEST: " << buffer << std::endl;
+}
+
+void Game::setInputCallack(InputFunction callback, std::string message)
+{
+    if (message.size() > 0)
+    {
+        std::cout << message << std::endl;
+    }
+    inputCallback = callback;
+}
+
+void Game::setInputCallack(InputFunction callback)
+{
+    setInputCallack(callback, "");
+}
+void Game::setInputCallack()
+{
+    setInputCallack(NULL, "");
+}
+
 Game::Game()
 {
     registerNetEvent("beginClientConnection", std::bind(&Game::beginClientConnection, this, std::placeholders::_1));
@@ -95,10 +124,11 @@ Game::Game()
     registerNetEvent("addPlayer", std::bind(&Game::addPlayer, this, std::placeholders::_1));
     registerNetEvent("setPlayers", std::bind(&Game::setPlayers, this, std::placeholders::_1));
     registerNetEvent("nicknameAcceptStatus", std::bind(&Game::nicknameAcceptStatus, this, std::placeholders::_1));
-    registerNetEvent("showGame", std::bind(&Game::showGame, this, std::placeholders::_1));
+    // registerNetEvent("showGame", std::bind(&Game::showGame, this, std::placeholders::_1));
     registerNetEvent("startRound", std::bind(&Game::startRound, this, std::placeholders::_1));
     registerNetEvent("updateTimer", std::bind(&Game::updateTimer, this, std::placeholders::_1));
     registerNetEvent("receiveAnswers", std::bind(&Game::receiveAnswers, this, std::placeholders::_1));
+    registerNetEvent("info", std::bind(&Game::info, this, std::placeholders::_1));
 }
 
 Game::player::player() : score(0) {}
@@ -130,44 +160,53 @@ void Game::showNicknameChoice(std::string buffer)
         std::string nickname = deserializeString(buffer);
         players[nickname] = new player();
     }
-    setNickname();
+    setInputCallack(std::bind(&Game::setNickname, this, std::placeholders::_1), "Wpisz swój nickname");
 }
 
-void Game::setNickname()
+void Game::setNickname(std::string nickname)
 {
-    std::string nickname;
-    bool zle = true;
-    // Spradzanie czy nick nie jest zajęty
-    while (zle)
+    for (int i = 0; i < static_cast<int>(nickname.length()); i++)
     {
-        std::cin >> nickname;
-        if (players.find(nickname) != players.end())
-            error(0, 0, "Taki nick juz zostal zajety");
-        else
-            zle = false;
+        if (nickname[i] == ' ' || nickname[i] == '\t' || nickname[i] == '\n' || nickname[i] == '\r')
+        {
+            error(0, 0, "W nicku nie mogą być białe znaki");
+            return;
+        }
     }
+    // Spradzanie czy nick nie jest zajęty
+    if (players.find(nickname) != players.end())
+    {
+        error(0, 0, "Taki nick juz zostal zajety");
+        return;
+    }
+
     _nickname = nickname;
     TriggerServerEvent("setPlayerNickname", serializeString(nickname));
-    if (nickname == "start")
-    {
-        sendSettingsStartGame();
-    }
 }
 
 void Game::nicknameAcceptStatus(std::string buffer)
 {
-    printText(buffer);
     std::string message = deserializeString(buffer);
 
     if (message == "ok")
     {
+        bool isHost = deserializeInt(buffer);
+        if (isHost)
+        {
+            setInputCallack(std::bind(&Game::sendSettingsStartGame, this, std::placeholders::_1), "Napisz \"ready\" jak wszyscy będą gotowi");
+        }
+        else
+        {
+            setInputCallack();
+        }
+
         // TODO wyświetlenie lobby
     }
     else if (message == "error")
     {
         // TODO wyświetlenie błędu
         error(0, 0, "Nick juz jest zajety");
-        setNickname();
+        setInputCallack(std::bind(&Game::setNickname, this, std::placeholders::_1), "Wpisz nickname ponownie");
     }
     else
     {
@@ -192,36 +231,74 @@ void Game::setPlayers(std::string buffer)
     }
 }
 
-void Game::sendSettingsStartGame()
+void Game::sendSettingsStartGame(std::string buffer)
 {
-    std::string message;
-    message += serializeInt(_settings.roundTimeSeconds) + serializeInt(_settings.cardsOnHand) + serializeInt(_settings.pointsToWin);
-    message += serializeInt(_settings.blankCardCount) + serializeInt(_settings.cardSets);
-    TriggerServerEvent("loadSettingsStartGame", message);
+    if (buffer == "ready")
+    {
+        setInputCallack();
+        std::string message;
+        message += serializeInt(_settings.roundTimeSeconds) + serializeInt(_settings.cardsOnHand) + serializeInt(_settings.pointsToWin);
+        message += serializeInt(_settings.blankCardCount) + serializeInt(_settings.cardSets);
+        TriggerServerEvent("loadSettingsStartGame", message);
+    }
+    else
+    {
+        std::cout << "Napisz \"ready\" jak wszyscy będą gotowi" << std::endl;
+    }
 }
 
-void Game::showGame(std::string buffer)
+void Game::addCard(std::pair<int, std::string> card)
 {
+    cards.push_back(card);
+}
+void Game::deleteCard(int index)
+{
+    cards.erase(cards.begin() + index);
+}
+
+void Game::showGame()
+{
+    std::cout << "Card Czar: " << _cardCzar << std::endl;
+    std::cout << "Hasło: " << blackCard << std::endl;
+    if (!_isCardCzar)
+    {
+        std::cout << "Posiadane karty" << std::endl;
+        for (int i = 0; i < static_cast<int>(cards.size()); i++)
+        {
+            std::cout << i + 1 << ". " << cards[i].second << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "Jesteś card czarem, poczekaj aż inni wybiorą karty" << std::endl;
+    }
 }
 
 void Game::startRound(std::string buffer)
 {
+    for (auto const &x : players)
+    {
+        // TODO czyczenie queue każdemy graczowi
+    }
+
     _gameClock = deserializeInt(buffer);
     _cardCzar = deserializeString(buffer);
     _isCardCzar = (_cardCzar == _nickname);
-    std::cout << "Nick: " << _cardCzar << std::endl;
+
     _cardsCountToPick = deserializeInt(buffer);
-    std::string blackcard = deserializeString(buffer);
-    std::cout << _cardsCountToPick << " " << blackcard << std::endl;
+    blackCard = deserializeString(buffer);
+
     while (buffer.size() > 0)
     {
         int cardID = deserializeInt(buffer);
         std::string card = deserializeString(buffer);
-        cards[cardID] = card; // TODO to chyba i tak będzie wysyłanie i przechowowywane po stronie frontu
-
-        std::cout << card << std::endl;
+        addCard(make_pair(cardID, card));
     }
-    getReady();
+    showGame();
+    if (!_isCardCzar)
+    {
+        setInputCallack(std::bind(&Game::getReady, this, std::placeholders::_1), "Wybierz " + std::to_string(_cardsCountToPick) + " kart po indexie");
+    }
 }
 
 void Game::updateTimer(std::string buffer)
@@ -229,39 +306,150 @@ void Game::updateTimer(std::string buffer)
     int newTime = deserializeInt(buffer);
     if (newTime < _gameClock)
     {
-        std::cout << newTime << std::endl;
         _gameClock = newTime;
+    }
+    if (_gameClock == 60)
+    {
+        std::cout << "Została 1 min" << std::endl;
+    }
+    else if (_gameClock == 30)
+    {
+        std::cout << "Została 30 sekund" << std::endl;
+    }
+    else if (_gameClock == 15)
+    {
+        std::cout << "Zostało 15 sekund" << std::endl;
+    }
+    else if (_gameClock == 5)
+    {
+        std::cout << "Zostało 5 sekund" << std::endl;
     }
 }
 
-void Game::getReady()
+void Game::getReady(std::string buffer)
 {
-    std::string message;
-    auto it = cards.begin();
-    for (int i = 0; i < _cardsCountToPick; i++)
+
+    std::vector<int> result;
+    std::stringstream ss(buffer);
+    int num;
+    while (ss >> num)
     {
-        message += serializeInt(it->first);
-        it++;
+        result.push_back(num + 1);
+    }
+    if (static_cast<int>(result.size()) != _cardsCountToPick)
+    {
+        error(0, 0, "Zła liczba odpowiedzi");
+        return;
+    }
+    std::cout << "test" << std::endl;
+    std::string message;
+    for (int i = 0; i < static_cast<int>(result.size()); i++)
+    {
+        message += serializeInt(cards[result[i]].first); // TODO usuwanie kart z zasobnika
+    }
+    for (int i = 0; i < static_cast<int>(result.size()); i++)
+    {
+        deleteCard(result[i]); //! TODO co jak się przestawi index?
     }
 
     TriggerServerEvent("clientGetReady", message);
 }
 
-void Game::receiveAnswers(std::string buffer)
+void Game::showAnswers()
 {
-    printText(buffer);
-    // TODO wymyślić jak dzielić odpowiedzi na od danego gracza
-    // Może na początku wysłać ile jest black kart a potem ściągać odp
+    for (auto const &x : players)
+    {
+        if (x.second->cardsPicked.size() > 0) // TODO zmienić na funkcje
+        {
+            std::cout << "Gracz " << x.first << std::endl;
+            for (int i = 0; i < _cardsCountToPick; i++)
+            {
+                std::cout << i + 1 << ". " << x.second->cardsPicked.front() << std::endl;
+                x.second->cardsPicked.pop();
+            }
+        }
+    }
 }
 
-void Game::pickAnswer()
+void Game::receiveAnswers(std::string buffer)
+{
+    while (buffer.size() > 0)
+    {
+        std::string nickname = deserializeString(buffer);
+        auto cardOwner = players.find(nickname);
+        if (cardOwner != players.end())
+        {
+            for (int i = 0; i < _cardsCountToPick; i++)
+            {
+                std::string answer = deserializeString(buffer);
+                std::cout << "TEST " << answer << std::endl;
+                cardOwner->second->cardsPicked.push(answer); // TODO zmienić na funkcję
+            }
+        }
+        else
+        {
+            error(0, 0, "Błąd przy wczytywaniu odpowiedzi. Brak gracza %s", nickname.c_str());
+            for (int i = 0; i < _cardsCountToPick; i++)
+            {
+                deserializeString(buffer);
+            }
+            return;
+        }
+    }
+    // TODO wymyślić jak dzielić odpowiedzi na od danego gracza
+    // Może na początku wysłać ile jest black kart a potem ściągać odp
+    showAnswers();
+    if (_isCardCzar)
+    {
+        setInputCallack(std::bind(&Game::pickAnswer, this, std::placeholders::_1), "Wybierz gracza, którego odpowiedzi ci się najbardziej podobają");
+    }
+    else
+    {
+        setInputCallack();
+    }
+}
+
+void Game::pickAnswer(std::string buffer)
 {
     if (_isCardCzar)
     {
+        auto winner = players.find(buffer);
+        if (winner != players.end())
+        {
+            //! TODO zrobić by nie usuwać rzeczy z queue
+            // if (winner->second->cardsPicked.size() > 0) // TODO zmienić na funkcje
+            //{
+            TriggerServerEvent("pickAnswerSet", serializeString(buffer));
+            setInputCallack();
+            return;
+            //}
+            // else
+            //{
+            //    error(0, 0, "Został wybrany gracz bez odpowiedzi");
+            //    setInputCallack(std::bind(&Game::pickAnswer, this, std::placeholders::_1), "Ponownie wybierz gracza, którego odpowiedzi ci się najbardziej podobają");
+            //    return;
+            // }
+        }
+        else
+        {
+            error(0, 0, "Taki gracz nie istnieje");
+            setInputCallack(std::bind(&Game::pickAnswer, this, std::placeholders::_1), "Ponownie wybierz gracza, którego odpowiedzi ci się najbardziej podobają");
+            return;
+        }
     }
     else
     {
         error(0, 0, "Próbowano wybrać odpowiedź, nie będąc Card Czarem");
+        return;
+    }
+}
+
+void Game::info(std::string buffer)
+{
+    std::string message = deserializeString(buffer);
+    if (message.size() > 0)
+    {
+        std::cout << message << std::endl;
     }
 }
 

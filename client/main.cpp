@@ -58,21 +58,17 @@ int main(int argc, char **argv)
         if (epollevent.events & EPOLLIN && epollevent.data.u64 == 692137420)
         {
             // read from stdin, write to socket
-            /* ssize_t bufsize = 255, received;
+            ssize_t bufsize = 255, received;
             char buffer[bufsize];
-            received = readData(0, buffer, bufsize);
-            buffer[received - 1] = '\0'; // TODO usunąć, do testów
+            received = read(0, buffer, bufsize);
+            buffer[received - 1] = '\0';
             received -= 1;
             if (received <= 0)
             {
-                printf("Connection lost\n");
-                shutdown(game.getSocket(), SHUT_RDWR);
-                epoll_ctl(epollFd, EPOLL_CTL_DEL, STDIN_FILENO, &epollevent);
-                close(game.getSocket());
-                exit(0);
+                std::cout << "Nic nie zostało wpisane" << std::endl;
             }
             std::string s_buffer = std::string(buffer);
-            game.TriggerServerEvent(s_buffer, ""); */
+            game.handleInput(s_buffer);
         }
         else
         {

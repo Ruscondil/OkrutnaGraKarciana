@@ -9,7 +9,7 @@
 bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::string arguments)
 {
     std::string message;
-    std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
+    // std::cout << "TRIGGER " << reciverFd << " " << eventName << std::endl;
     if (arguments == "")
     {
         arguments = "\r";

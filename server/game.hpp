@@ -48,6 +48,7 @@ private:
     void startSummary();
     void returnedPlayer(int);
     void checkIfEveryoneReady();
+    void pickAnswerSet(int source, std::string arguments);
 
 public:
     Game();

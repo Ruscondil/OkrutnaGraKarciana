@@ -115,6 +115,7 @@ Game::Game() : gameStatus(LOBBY)
     registerNetEvent("setPlayerNickname", std::bind(&Game::setPlayerNickname, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("loadSettingsStartGame", std::bind(&Game::loadSettingsStartGame, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("clientGetReady", std::bind(&Game::clientGetReady, this, std::placeholders::_1, std::placeholders::_2));
+    registerNetEvent("pickAnswerSet", std::bind(&Game::pickAnswerSet, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void Game::lostClient(int source)
@@ -279,7 +280,8 @@ void Game::setPlayerNickname(int source, std::string arguments)
             }
         }
     }
-    client->second->TriggerClientEvent("nicknameAcceptStatus", serializeString("ok"));
+
+    client->second->TriggerClientEvent("nicknameAcceptStatus", serializeString("ok") + serializeInt(source == gameCzar));
 
     if (client->second->setNickname(nickname))
     {
@@ -372,7 +374,6 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
         // Odpalenie timera
         // Wysłanie kto jest czarem
         //? Może to zrobić jako osobną funkcje bo przecież rudny też będą takie
-        sendToAll("showGame", "");
         newRound();
     }
     else
@@ -409,7 +410,7 @@ int Game::newCardCzar(int oldCzar)
 }
 
 void Game::newRound()
-{
+{ //! TODO Tutaj się robi deadlock nwm czemu jak nikogo nie wybrało w summary
     stopTimer();
     destroyTimer();
     gameStatus = ROUND;
@@ -482,12 +483,13 @@ void Game::clientGetReady(int source, std::string arguments)
     while (arguments.size() > 0)
     {
         int cardID = deserializeInt(arguments);
+
         if (!client->second->pickCard(cardID))
         {
             error(1, 0, "Gracz ID %i próbuję wykorzystać kartę, której nie posiada", source);
             return;
         }
-
+        client->second->deleteCard(cardID);
         std::cout << responses[cardID] << std::endl;
     }
     client->second->setReady(true);
@@ -499,7 +501,7 @@ void Game::checkIfEveryoneReady()
     bool everyoneReady = true;
     for (auto const &c : clients)
     {
-        if (c.second->getStatus() == Client::status::OK and !c.second->getReady())
+        if ((c.second->getStatus() == Client::status::OK and (!c.first) == gameCzar) and !c.second->getReady())
         {
             everyoneReady = false;
             break;
@@ -532,12 +534,12 @@ void Game::timerDone()
 void Game::startSummary()
 {
     gameStatus = ROUNDSUM;
-    std::string message;
+    std::string message; // TODO może zrobić zapamiętywanie wygenerowanej wiadomości?
     for (auto const &x : clients)
     {
-        if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
+        if ((x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST) and x.second->pickedCardsCount() > 0)
         {
-            message += serializeInt(x.first);
+            message += serializeString(x.second->getNickname());
             int card = x.second->popPickedCard();
             while (card != -1)
             {
@@ -546,15 +548,46 @@ void Game::startSummary()
             }
         }
     }
-    for (auto const &x : clients)
+    if (message.size() > 0)
     {
-        if (x.second->getStatus() == Client::status::OK)
+        for (auto const &x : clients)
         {
-            x.second->TriggerClientEvent("receiveAnswers", message);
+            if (x.second->getStatus() == Client::status::OK)
+            {
+                x.second->TriggerClientEvent("receiveAnswers", message);
+            }
         }
     }
+    else
+    {
+        std::cout << "Nikt nie dostarczył odpowowiedzi na czas" << std::endl;
+        sendToAll("info", serializeString("Nikt nie dostarczył odpowowiedzi na czas"));
+        newRound();
+        // TODO co jeśli nikt nie dał kart
+    }
+}
 
-    // TODO przerobić sendToAll
+void Game::pickAnswerSet(int source, std::string arguments)
+{
+    std::string winnerNickname = deserializeString(arguments); //! Jak ktoś się połączony znowu/odłączy to zmieni mu się id TODO
+    for (auto const &client : clients)
+    {
+        if ((client.second->getStatus() == Client::status::LOST or client.second->getStatus() == Client::status::OK) and client.second->getNickname() == winnerNickname)
+        {
+            client.second->setScoreInc(1);
+            std::cout << "Gracz ID " << client.first << " " << winnerNickname << " zwyciężył rundę " << std::endl;
+            if (client.second->getScore() >= _settings.pointsToWin)
+            {
+                std::cout << "Gracz ID " << client.first << " " << winnerNickname << " zwyciężył grę" << std::endl;
+                sendToAll("info", "Grę zwyciężył" + winnerNickname);
+                // todo Zrobić jakieś zakończenie czy coś
+            }
+            else
+            {
+                newRound();
+            }
+        }
+    }
 }
 
 void Game::safeCloseServer()

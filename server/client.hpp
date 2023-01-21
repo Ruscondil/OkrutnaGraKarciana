@@ -6,7 +6,7 @@
 #include <queue>
 #include <set>
 
-class Client : public Handler
+class Client : private Handler
 {
 
 public:
@@ -46,6 +46,7 @@ public:
     bool pickCard(int);
     void clearPickedCards();
     int popPickedCard();
+    int pickedCardsCount();
 
 private:
     int _fd;
