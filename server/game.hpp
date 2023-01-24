@@ -36,11 +36,9 @@ private:
         END = 3
     };
     status gameStatus;
-    void beginServerConnection(int, std::string arguments);
-    void setPlayerNickname(int, std::string);
-    void loadSettingsStartGame(int, std::string);
-    void newRound();
+    void startGame(int source, std::string arguments);
     void clientGetReady(int source, std::string arguments);
+    void loadSettings();
     virtual void secondPassed(int) override;
     virtual void timerDone() override;
     void lostClient(int);

@@ -236,10 +236,7 @@ void Game::sendSettingsStartGame(std::string buffer)
     if (buffer == "ready")
     {
         setInputCallack();
-        std::string message;
-        message += serializeInt(_settings.roundTimeSeconds) + serializeInt(_settings.cardsOnHand) + serializeInt(_settings.pointsToWin);
-        message += serializeInt(_settings.blankCardCount) + serializeInt(_settings.cardSets);
-        TriggerServerEvent("loadSettingsStartGame", message);
+        TriggerServerEvent("startGame");
     }
     else
     {

@@ -59,6 +59,54 @@ Game::settings::settings()
     cardSets = 1;
 }
 
+void Game::loadSettings()
+{
+    std::ifstream file("settings.conf");
+    if (!file)
+    {
+        std::ofstream newfile("settings.conf");
+        newfile << "roundTimeSeconds = 90" << std::endl;
+        newfile << "cardsOnHand = 6" << std::endl;
+        newfile << "pointsToWin = 3" << std::endl;
+        newfile << "blankCardCount = 5" << std::endl;
+        newfile << "cardSets = 6" << std::endl;
+        newfile.close();
+        _settings.roundTimeSeconds = 90;
+        _settings.cardsOnHand = 6;
+        _settings.pointsToWin = 3;
+        _settings.blankCardCount = 5;
+        _settings.cardSets = 6;
+    }
+    else
+    {
+        std::string line;
+        while (getline(file, line))
+        {
+            if (line.find("roundTimeSeconds") != std::string::npos)
+            {
+                _settings.roundTimeSeconds = std::stoi(line.substr(line.find("=") + 2));
+            }
+            else if (line.find("cardsOnHand") != std::string::npos)
+            {
+                _settings.cardsOnHand = std::stoi(line.substr(line.find("=") + 2));
+            }
+            else if (line.find("pointsToWin") != std::string::npos)
+            {
+                _settings.pointsToWin = std::stoi(line.substr(line.find("=") + 2));
+            }
+            else if (line.find("blankCardCount") != std::string::npos)
+            {
+                _settings.blankCardCount = std::stoi(line.substr(line.find("=") + 2));
+            }
+            else if (line.find("cardSets") != std::string::npos)
+            {
+                _settings.cardSets = std::stoi(line.substr(line.find("=") + 2));
+            }
+        }
+    }
+    file.close();
+}
+
 void Game::handleEvent(uint32_t events, int source)
 {
     if (events & EPOLLIN)
@@ -116,6 +164,7 @@ Game::Game() : gameStatus(LOBBY)
     registerNetEvent("loadSettingsStartGame", std::bind(&Game::loadSettingsStartGame, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("clientGetReady", std::bind(&Game::clientGetReady, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("pickAnswerSet", std::bind(&Game::pickAnswerSet, this, std::placeholders::_1, std::placeholders::_2));
+    loadSettings();
 }
 
 void Game::lostClient(int source)
@@ -314,7 +363,7 @@ void Game::returnedPlayer(int source)
     // TODO
 }
 
-void Game::loadSettingsStartGame(int source, std::string arguments)
+void Game::startGame(int source, std::string arguments)
 {
     if (gameStatus != LOBBY)
     {
@@ -323,12 +372,6 @@ void Game::loadSettingsStartGame(int source, std::string arguments)
     }
     if (source == gameCzar)
     {
-        _settings.roundTimeSeconds = deserializeInt(arguments);
-        _settings.cardsOnHand = deserializeInt(arguments);
-        _settings.pointsToWin = deserializeInt(arguments);
-        _settings.blankCardCount = deserializeInt(arguments);
-        _settings.cardSets = deserializeInt(arguments);
-
         std::cout << "\n--------------START---------------" << std::endl;
         std::cout << "----Gracze----" << std::endl;
         for (auto const &x : clients)
