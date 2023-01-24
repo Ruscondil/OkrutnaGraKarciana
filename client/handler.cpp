@@ -18,9 +18,9 @@ bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::stri
 
     int count = message.length();
 
-    char test[1024];
+    char test[1024]; // TODO no zmienić by nie był test i dać size taki jaki powinien być
     memcpy(test, message.data(), message.size());
-    return count != ::send(reciverFd, test, count, 0);
+    return count != ::write(reciverFd, test, count);
 }
 
 void Handler::registerNetEvent(std::string eventName, EventFunction callback)

@@ -19,7 +19,7 @@ bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::stri
 
     char test[1024];
     memcpy(test, message.data(), message.size());
-    return count != ::send(reciverFd, test, count, 0);
+    return count != ::write(reciverFd, test, count);
 }
 
 void Handler::registerNetEvent(std::string eventName, EventFunction callback)

@@ -114,13 +114,13 @@ void Game::handleEvent(uint32_t events, int source)
     {
         char buffer[1024] = "";
 
-        ssize_t count = recv(getSocket(), buffer, 1024, 0);
-        std::string s_buffer;
-        s_buffer.resize(count);
-        memcpy(&s_buffer[0], buffer, count);
-
+        ssize_t count = read(source, buffer, 1024);
         if (count > 0)
         {
+            std::string s_buffer;
+            s_buffer.resize(count);
+            memcpy(&s_buffer[0], buffer, count);
+
             while (s_buffer.size() > 0)
             {
                 // printText(s_buffer);
@@ -151,10 +151,6 @@ void Game::handleEvent(uint32_t events, int source)
             events |= EPOLLERR;
             lostClient(source);
         }
-    }
-    if (events & ~EPOLLIN)
-    {
-        // remove();
     }
 }
 
@@ -212,7 +208,7 @@ void Game::lostClient(int source)
 void Game::newClient(int clientFd)
 {
     auto client = clients.find(clientFd);
-    if (client != clients.end())
+    if (client == clients.end())
     {
         clients[clientFd] = new Client(clientFd);
         if (clients.size() == 1)

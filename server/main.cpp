@@ -70,8 +70,6 @@ int main(int argc, char **argv)
     ServHandler servHandler;
     epoll_event ee{EPOLLIN, {.u64 = 0}};
     epoll_ctl(epollFd, EPOLL_CTL_ADD, game.getSocket(), &ee);
-    ee.data.u64 = game.getSocket();
-    epoll_ctl(epollFd, EPOLL_CTL_ADD, game.getSocket(), &ee);
 
     while (true)
     {

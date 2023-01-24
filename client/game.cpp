@@ -53,14 +53,13 @@ void Game::handleEvent(uint32_t events)
     if (events & EPOLLIN)
     {
         char buffer[1024] = "";
-        ssize_t count = recv(getSocket(), buffer, 1024, 0);
-        // std::cout << "Count: " << count << std::endl;
-        std::string s_buffer; // copying every bit of char to string
-        s_buffer.resize(count);
-        memcpy(&s_buffer[0], buffer, count);
-
+        ssize_t count = read(getSocket(), buffer, 1024);
         if (count > 0)
         {
+            std::string s_buffer; // copying every bit of char to string
+            s_buffer.resize(count);
+            memcpy(&s_buffer[0], buffer, count);
+
             while (s_buffer.size() > 0)
             {
                 // printText(s_buffer);
@@ -132,8 +131,8 @@ Game::settings::settings() : roundTimeSeconds(90), cardsOnHand(6), pointsToWin(3
 
 void Game::TriggerServerEvent(std::string const eventName, std::string arguments)
 {
-    // printText(message + arguments);
-    TriggerEvent(getSocket(), eventName, serializeInt(_clientServerFd) + arguments);
+    printText(eventName + arguments);
+    std::cout << "TEFDFD " << TriggerEvent(getSocket(), eventName, serializeInt(_clientServerFd) + arguments) << std::endl;
 }
 
 void Game::TriggerServerEvent(std::string const eventName)
@@ -323,22 +322,27 @@ void Game::getReady(std::string buffer)
     int num;
     while (ss >> num)
     {
-        result.push_back(num + 1);
+        if (num <= 0 or num > _cardsCountToPick)
+        {
+            std::cout << "Wybierz z poprawnego przedziału" << std::endl;
+            return;
+        }
+        result.push_back(num - 1);
     }
     if (static_cast<int>(result.size()) != _cardsCountToPick)
     {
-        error(0, 0, "Zła liczba odpowiedzi");
+        std::cout << "Zła liczba odpowiedzi" << std::endl;
         return;
     }
-    std::cout << "test" << std::endl;
     std::string message;
     for (int i = 0; i < static_cast<int>(result.size()); i++)
     {
-        message += serializeInt(cards[result[i]].first); // TODO usuwanie kart z zasobnika
+        message += serializeInt(cards[result[i]].first);
     }
-    for (int i = 0; i < static_cast<int>(result.size()); i++)
+    std::sort(result.begin(), result.end());
+    for (int i = static_cast<int>(result.size()); i >= 0; i--)
     {
-        deleteCard(result[i]); //! TODO co jak się przestawi index?
+        deleteCard(result[i]);
     }
 
     TriggerServerEvent("clientGetReady", message);
