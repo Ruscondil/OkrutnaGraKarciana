@@ -53,7 +53,7 @@ void Game::handleEvent(uint32_t events)
     if (events & EPOLLIN)
     {
         char buffer[1024] = "";
-        ssize_t count = read(getSocket(), buffer, 1024);
+        ssize_t count = recv(getSocket(), buffer, 1024, 0);
         // std::cout << "Count: " << count << std::endl;
         std::string s_buffer; // copying every bit of char to string
         s_buffer.resize(count);

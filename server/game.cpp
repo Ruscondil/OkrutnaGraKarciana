@@ -113,7 +113,7 @@ void Game::handleEvent(uint32_t events, int source)
     {
         char buffer[1024] = "";
 
-        ssize_t count = read(source, buffer, 1024);
+        ssize_t count = recv(getSocket(), buffer, 1024, 0);
         std::string s_buffer;
         s_buffer.resize(count);
         memcpy(&s_buffer[0], buffer, count);
