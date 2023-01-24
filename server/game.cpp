@@ -341,9 +341,10 @@ void Game::setPlayerNickname(int source, std::string arguments)
     {
         sendToAllBut(source, "addPlayer", serializeString(nickname));
         std::string nicknames;
+        client->second->setStatus(Client::status::OK);
         for (auto const &x : clients)
         {
-            if (x.second->getStatus() == Client::status::NONICKNAME)
+            if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
             {
                 nicknames += serializeString(x.second->getNickname());
             }
@@ -359,8 +360,6 @@ void Game::setPlayerNickname(int source, std::string arguments)
             return;
         }
     }
-
-    client->second->setStatus(Client::status::OK);
 }
 
 void Game::returnedPlayer(int source)
@@ -524,7 +523,7 @@ void Game::clientGetReady(int source, std::string arguments)
     {
         int cardID = deserializeInt(arguments);
 
-        if (!client->second->pickCard(cardID))
+        if (!client->second->pickCard(cardID)) // TODO odwrotnie są karty
         {
             error(1, 0, "Gracz ID %i próbuję wykorzystać kartę, której nie posiada", source);
             return;
@@ -551,7 +550,7 @@ void Game::checkIfEveryoneReady()
     {
         std::cout << "Wszyscy gracze zgłosili gotowość, kończę rundę" << std::endl;
         // stopTimer();
-        // startSummary();
+        startSummary();
     }
 }
 

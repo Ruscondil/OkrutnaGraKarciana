@@ -63,6 +63,7 @@ private:
     void setInputCallack();
 
     void addCard(std::pair<int, std::string>);
+    int getCardsCount();
     void deleteCard(int index);
 
     void showAnswers();

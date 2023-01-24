@@ -131,8 +131,7 @@ Game::settings::settings() : roundTimeSeconds(90), cardsOnHand(6), pointsToWin(3
 
 void Game::TriggerServerEvent(std::string const eventName, std::string arguments)
 {
-    printText(eventName + arguments);
-    std::cout << "TEFDFD " << TriggerEvent(getSocket(), eventName, serializeInt(_clientServerFd) + arguments) << std::endl;
+    TriggerEvent(getSocket(), eventName, serializeInt(_clientServerFd) + arguments);
 }
 
 void Game::TriggerServerEvent(std::string const eventName)
@@ -244,6 +243,11 @@ void Game::deleteCard(int index)
     cards.erase(cards.begin() + index);
 }
 
+int Game::getCardsCount()
+{
+    return cards.size();
+}
+
 void Game::showGame()
 {
     std::cout << "Card Czar: " << _cardCzar << std::endl;
@@ -322,7 +326,7 @@ void Game::getReady(std::string buffer)
     int num;
     while (ss >> num)
     {
-        if (num <= 0 or num > _cardsCountToPick)
+        if (num <= 0 or num > getCardsCount())
         {
             std::cout << "Wybierz z poprawnego przedziału" << std::endl;
             return;
