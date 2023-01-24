@@ -78,15 +78,10 @@ void Game::handleEvent(uint32_t events)
                 }
             }
         }
-        else if (count <= 0)
+        else
         {
-            events |= EPOLLERR;
             closeClient();
         }
-    }
-    if (events & ~EPOLLIN)
-    {
-        // TODO
     }
 }
 
@@ -131,7 +126,7 @@ Game::Game()
     registerNetEvent("info", std::bind(&Game::info, this, std::placeholders::_1));
 }
 
-Game::player::player() : score(0) {}
+Game::player::player() : score(0), isOnline(true) {}
 
 Game::settings::settings() : roundTimeSeconds(90), cardsOnHand(6), pointsToWin(3), blankCardCount(5), cardSets(6) {}
 
@@ -141,7 +136,7 @@ void Game::TriggerServerEvent(std::string const eventName, std::string arguments
     TriggerEvent(getSocket(), eventName, serializeInt(_clientServerFd) + arguments);
 }
 
-void Game::TriggerServerEvent(std::string eventName)
+void Game::TriggerServerEvent(std::string const eventName)
 {
     TriggerServerEvent(eventName, "");
 }
@@ -199,12 +194,9 @@ void Game::nicknameAcceptStatus(std::string buffer)
         {
             setInputCallack();
         }
-
-        // TODO wyświetlenie lobby
     }
     else if (message == "error")
     {
-        // TODO wyświetlenie błędu
         error(0, 0, "Nick juz jest zajety");
         setInputCallack(std::bind(&Game::setNickname, this, std::placeholders::_1), "Wpisz nickname ponownie");
     }
@@ -275,7 +267,7 @@ void Game::startRound(std::string buffer)
 {
     for (auto const &x : players)
     {
-        // TODO czyczenie queue każdemy graczowi
+        x.second->deletePickedCards();
     }
 
     _gameClock = deserializeInt(buffer);
@@ -356,13 +348,13 @@ void Game::showAnswers()
 {
     for (auto const &x : players)
     {
-        if (x.second->cardsPicked.size() > 0) // TODO zmienić na funkcje
+        std::vector<std::string> playerPicks = x.second->getPickedCards();
+        if (playerPicks.size() > 0) // TODO zmienić na funkcje
         {
             std::cout << "Gracz " << x.first << std::endl;
-            for (int i = 0; i < _cardsCountToPick; i++)
+            for (int i = 0; i < static_cast<int>(playerPicks.size()); i++)
             {
-                std::cout << i + 1 << ". " << x.second->cardsPicked.front() << std::endl;
-                x.second->cardsPicked.pop();
+                std::cout << i + 1 << ". " << playerPicks[i] << std::endl;
             }
         }
     }
@@ -380,7 +372,7 @@ void Game::receiveAnswers(std::string buffer)
             {
                 std::string answer = deserializeString(buffer);
                 std::cout << "TEST " << answer << std::endl;
-                cardOwner->second->cardsPicked.push(answer); // TODO zmienić na funkcję
+                cardOwner->second->addPickedCard(answer); // TODO zmienić na funkcję
             }
         }
         else
@@ -393,8 +385,6 @@ void Game::receiveAnswers(std::string buffer)
             return;
         }
     }
-    // TODO wymyślić jak dzielić odpowiedzi na od danego gracza
-    // Może na początku wysłać ile jest black kart a potem ściągać odp
     showAnswers();
     if (_isCardCzar)
     {
@@ -414,18 +404,18 @@ void Game::pickAnswer(std::string buffer)
         if (winner != players.end())
         {
             //! TODO zrobić by nie usuwać rzeczy z queue
-            // if (winner->second->cardsPicked.size() > 0) // TODO zmienić na funkcje
-            //{
-            TriggerServerEvent("pickAnswerSet", serializeString(buffer));
-            setInputCallack();
-            return;
-            //}
-            // else
-            //{
-            //    error(0, 0, "Został wybrany gracz bez odpowiedzi");
-            //    setInputCallack(std::bind(&Game::pickAnswer, this, std::placeholders::_1), "Ponownie wybierz gracza, którego odpowiedzi ci się najbardziej podobają");
-            //    return;
-            // }
+            if (winner->second->getPickedCardsCount() > 0) // TODO zmienić na funkcje
+            {
+                TriggerServerEvent("pickAnswerSet", serializeString(buffer));
+                setInputCallack();
+                return;
+            }
+            else
+            {
+                error(0, 0, "Został wybrany gracz bez odpowiedzi");
+                setInputCallack(std::bind(&Game::pickAnswer, this, std::placeholders::_1), "Ponownie wybierz gracza, którego odpowiedzi ci się najbardziej podobają");
+                return;
+            }
         }
         else
         {
@@ -457,4 +447,24 @@ void Game::closeClient()
     close(getSocket());
     printf("Closing client\n");
     exit(0);
+}
+
+std::vector<std::string> Game::player::getPickedCards()
+{
+    return cardsPicked;
+}
+
+void Game::player::addPickedCard(std::string card)
+{
+    cardsPicked.insert(cardsPicked.begin(), card);
+}
+
+void Game::player::deletePickedCards()
+{
+    cardsPicked.clear();
+}
+
+int Game::player::getPickedCardsCount()
+{
+    return cardsPicked.size();
 }

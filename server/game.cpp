@@ -13,6 +13,7 @@
 #include <functional>
 #include <cstring>
 #include <vector>
+#include <fstream>
 
 void printText(std::string text) // TODO usunać
 {
@@ -161,7 +162,7 @@ Game::Game() : gameStatus(LOBBY)
 {
     registerNetEvent("beginServerConnection", std::bind(&Game::beginServerConnection, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("setPlayerNickname", std::bind(&Game::setPlayerNickname, this, std::placeholders::_1, std::placeholders::_2));
-    registerNetEvent("loadSettingsStartGame", std::bind(&Game::loadSettingsStartGame, this, std::placeholders::_1, std::placeholders::_2));
+    registerNetEvent("startGame", std::bind(&Game::startGame, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("clientGetReady", std::bind(&Game::clientGetReady, this, std::placeholders::_1, std::placeholders::_2));
     registerNetEvent("pickAnswerSet", std::bind(&Game::pickAnswerSet, this, std::placeholders::_1, std::placeholders::_2));
     loadSettings();
@@ -180,10 +181,10 @@ void Game::lostClient(int source)
             closeClientFd(source);
             if (gameCzar == source)
             {
-
                 if (gameStatus == ROUND or gameStatus == ROUNDSUM)
                 {
                     newRound();
+                    return;
                 }
             }
             else
@@ -191,28 +192,39 @@ void Game::lostClient(int source)
                 if (gameStatus == ROUND)
                 {
                     checkIfEveryoneReady();
+                    return;
                 }
             }
         }
         else
         {
             removeClient(source);
+            return;
         }
     }
     else
     {
         closeClientFd(source);
+        return;
     }
 }
 
 void Game::newClient(int clientFd)
 {
-    clients[clientFd] = new Client(clientFd); // TODO dodać jakieś zabezpieczenie
-    if (clients.size() == 1)
+    auto client = clients.find(clientFd);
+    if (client != clients.end())
     {
-        gameCzar = clientFd;
+        clients[clientFd] = new Client(clientFd);
+        if (clients.size() == 1)
+        {
+            gameCzar = clientFd;
+        }
+        clients[clientFd]->TriggerClientEvent("beginClientConnection", serializeInt(clientFd));
     }
-    clients[clientFd]->TriggerClientEvent("beginClientConnection", serializeInt(clientFd)); // TODO giga zła głowa więc potem ogarnąć to find
+    else
+    {
+        error(1, 0, "Gracz o takim deskryptorze %i już istnieje w bazie", clientFd);
+    }
 }
 
 void Game::removeClient(int clientFd)
@@ -306,14 +318,13 @@ void Game::setPlayerNickname(int source, std::string arguments)
 
     for (auto const &x : clients)
     {
-        if (x.second->getNickname() == nickname) // TODO może potem zmienić na to że musi być aktywny czy coś
+        if (x.second->getNickname() == nickname)
         {
             if (x.second->getStatus() == Client::status::LOST)
             {
                 std::cout << "Gracz ID " << source << " zostaje przywrócony do gry." << std::endl;
-                // TODO funkcja by przesłała graczowi najważniejsze info o grze
                 returnedPlayer(source);
-                delete client->second; // TODO zrobić na na funkcje czy ciś
+                delete client->second;
                 clients.erase(client);
                 client = changeClientId(x.first, source);
                 recoverClient = true;
@@ -336,7 +347,7 @@ void Game::setPlayerNickname(int source, std::string arguments)
         std::string nicknames;
         for (auto const &x : clients)
         {
-            if (x.second->getNickname() != "") // TODO może potem zmienić na to że musi być aktywny czy coś
+            if (x.second->getStatus() == Client::status::NONICKNAME)
             {
                 nicknames += serializeString(x.second->getNickname());
             }
@@ -348,8 +359,8 @@ void Game::setPlayerNickname(int source, std::string arguments)
         if (!recoverClient)
         {
             error(0, 0, "Gracz ID %i probowal ponownie ustawic nickname", source);
+            lostClient(source);
             return;
-            // TODO wyrzucenie klienta
         }
     }
 
@@ -374,7 +385,7 @@ void Game::startGame(int source, std::string arguments)
         std::cout << "----Gracze----" << std::endl;
         for (auto const &x : clients)
         {
-            if (x.second->getNickname() != "") // TODO może potem zmienić na to że musi być aktywny czy coś
+            if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
             {
                 std::cout << x.second->getNickname() << std::endl;
             }
@@ -501,7 +512,6 @@ void Game::newRound()
             {
                 arg += serializeInt(addedCard) + serializeString(responses[addedCard]);
             }
-            // printText(arg);
             x.second->TriggerClientEvent("startRound", arg);
         }
     }
@@ -620,8 +630,10 @@ void Game::pickAnswerSet(int source, std::string arguments)
             {
                 newRound();
             }
+            return;
         }
     }
+    error(1, 0, "Gracz wybrany jako zwycięzca nie istnieje %s", winnerNickname.c_str());
 }
 
 void Game::safeCloseServer()

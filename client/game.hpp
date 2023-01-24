@@ -36,7 +36,12 @@ private:
         player();
         int score;
         bool isOnline;
-        std::queue<std::string> cardsPicked;
+        std::vector<std::string> cardsPicked;
+
+        std::vector<std::string> getPickedCards();
+        void addPickedCard(std::string card);
+        void deletePickedCards();
+        int getPickedCardsCount();
     };
 
     void beginClientConnection(std::string buffer);

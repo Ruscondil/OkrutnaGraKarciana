@@ -72,7 +72,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            ((Handler *)epollevent.data.ptr)->handleEvent(epollevent.events);
+            static_cast<Handler *>(epollevent.data.ptr)->handleEvent(epollevent.events);
         }
     }
 

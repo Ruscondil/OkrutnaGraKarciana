@@ -35,17 +35,24 @@ private:
         END = 3
     };
     status gameStatus;
+    void beginServerConnection(int source, std::string arguments);
+    void setPlayerNickname(int source, std::string arguments);
     void startGame(int source, std::string arguments);
     void clientGetReady(int source, std::string arguments);
+    void pickAnswerSet(int source, std::string arguments);
+
+    void lostClient(int id);
+    void returnedPlayer(int id);
+
     void loadSettings();
+
+    int newCardCzar(int oldCzar);
+    void newRound();
+    void checkIfEveryoneReady();
+    void startSummary();
+
     virtual void secondPassed(int) override;
     virtual void timerDone() override;
-    void lostClient(int);
-    int newCardCzar(int oldCzar);
-    void startSummary();
-    void returnedPlayer(int);
-    void checkIfEveryoneReady();
-    void pickAnswerSet(int source, std::string arguments);
 
 public:
     Game();

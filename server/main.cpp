@@ -40,9 +40,7 @@ public:
 
             game.newClient(clientFd);
 
-            epoll_event ee{EPOLLIN | EPOLLRDHUP};
-            ee.data.u64 = clientFd;
-
+            epoll_event ee{EPOLLIN | EPOLLRDHUP, {.u64 = static_cast<uint64_t>(clientFd)}};
             epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &ee); // TODO naprawić
         }
         if (events & ~EPOLLIN)
@@ -71,6 +69,8 @@ int main(int argc, char **argv)
     game.setEpollFd(epollFd);
     ServHandler servHandler;
     epoll_event ee{EPOLLIN, {.u64 = 0}};
+    epoll_ctl(epollFd, EPOLL_CTL_ADD, game.getSocket(), &ee);
+    ee.data.u64 = game.getSocket();
     epoll_ctl(epollFd, EPOLL_CTL_ADD, game.getSocket(), &ee);
 
     while (true)
