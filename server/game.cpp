@@ -506,8 +506,8 @@ void Game::newRound()
         }
     }
 
-    startTimer(_settings.roundTimeSeconds);
-    //! Jeżeli będzie za mało kart to się zapętli
+    // startTimer(_settings.roundTimeSeconds);
+    //! Jeżeli będzie za mało kart w puli to się zapętli
 }
 
 void Game::clientGetReady(int source, std::string arguments)
@@ -544,8 +544,8 @@ void Game::checkIfEveryoneReady()
     if (everyoneReady)
     {
         std::cout << "Wszyscy gracze zgłosili gotowość, kończę rundę" << std::endl;
-        stopTimer();
-        startSummary();
+        // stopTimer();
+        // startSummary();
     }
 }
 
@@ -628,7 +628,7 @@ void Game::safeCloseServer()
 {
     for (auto const &client : clients)
         delete client.second;
-    stopTimer();
-    destroyTimer();
+    // stopTimer();
+    // destroyTimer();
     connectionManager::closeServer();
 }
