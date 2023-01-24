@@ -3,23 +3,14 @@
 #include <error.h>
 #include <unistd.h>
 
-ServerConnection::ServerConnection()
+ServerConnection::ServerConnection() : _hints{.ai_flags = 0, .ai_family = AF_INET, .ai_socktype = SOCK_STREAM, .ai_protocol = 0, .ai_addrlen = 0, .ai_addr = nullptr, .ai_canonname = nullptr, .ai_next = nullptr}, _sock(), _epollFd()
 {
-    _hints = {.ai_flags = 0, .ai_family = AF_INET, .ai_socktype = SOCK_STREAM};
     setServerAddress((char *)"127.0.0.1", (char *)"7777");
 }
 
-ServerConnection::ServerConnection(char *addr, char *port)
+ServerConnection::ServerConnection(char *addr, char *port) : _hints{.ai_flags = 0, .ai_family = AF_INET, .ai_socktype = SOCK_STREAM, .ai_protocol = 0, .ai_addrlen = 0, .ai_addr = nullptr, .ai_canonname = nullptr, .ai_next = nullptr}, _sock(), _epollFd()
 {
-    _hints = {.ai_flags = 0, .ai_family = AF_INET, .ai_socktype = SOCK_STREAM};
     setServerAddress(addr, port);
-}
-
-ServerConnection::~ServerConnection() // destuktor
-{   //TODO chyba useless
-    // epoll_ctl(epollFd, EPOLL_CTL_DEL, _fd, nullptr);
-    // shutdown(_fd, SHUT_RDWR);
-    close(_sock);
 }
 
 void ServerConnection::setServerAddress(char *addr, char *port)
