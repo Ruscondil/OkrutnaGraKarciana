@@ -19,7 +19,6 @@ private:
         int pointsToWin;
         int blankCardCount;
         int cardSets;
-        // TODO wektor wektorów czarnych kart i białych
     };
 
     std::vector<std::vector<std::string>> calls;

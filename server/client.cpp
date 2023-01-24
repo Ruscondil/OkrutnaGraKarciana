@@ -40,10 +40,7 @@ void Client::handleEvent(uint32_t events, int _fd)
 
 void Client::TriggerClientEvent(std::string const eventName, std::string const arguments)
 {
-    if (!TriggerEvent(_fd, eventName, arguments))
-    {
-        // TODO dać że user lost
-    }
+    TriggerEvent(_fd, eventName, arguments);
 }
 
 void Client::TriggerClientEvent(std::string const eventName)

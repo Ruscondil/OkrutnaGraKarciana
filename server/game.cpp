@@ -183,8 +183,6 @@ void Game::lostClient(int source)
 
                 if (gameStatus == ROUND or gameStatus == ROUNDSUM)
                 {
-
-                    // TODO sprawdzić
                     newRound();
                 }
             }
@@ -412,11 +410,6 @@ void Game::startGame(int source, std::string arguments)
             std::vector<std::string> deckResponses = getResponses();
             responses.insert(responses.end(), deckResponses.begin(), deckResponses.end());
         }
-
-        // TODO no wszystko co ma się dziać
-        // Odpalenie timera
-        // Wysłanie kto jest czarem
-        //? Może to zrobić jako osobną funkcje bo przecież rudny też będą takie
         newRound();
     }
     else
@@ -453,9 +446,10 @@ int Game::newCardCzar(int oldCzar)
 }
 
 void Game::newRound()
-{ //! TODO Tutaj się robi deadlock nwm czemu jak nikogo nie wybrało w summary
-    stopTimer();
-    destroyTimer();
+{ //!  Tutaj się robi deadlock, ponieważ przy timerDone, wszystko jest dalej odpalane w timerze przez co przy destroyTimer nie można czekać na koniec timer bo funkcja jest w timerze.
+    //! Do rozwiązania brak timera
+    // stopTimer();
+    // destroyTimer();
     gameStatus = ROUND;
     std::cout << "\n--------------NEW ROUND---------------" << std::endl;
     std::srand(unsigned(std::time(nullptr)));
@@ -473,9 +467,7 @@ void Game::newRound()
     {
         std::cout << "Card Czarem zostaje GRACZ ID " << gameCzar << std::endl;
     }
-    // TODO Wybieranie card czara
-    auto czar = clients.find(gameCzar); // TODO dać jakieś zabezpieczenie może
-    // Uzupełnianie kart klientów do określoneej liczby
+    auto czar = clients.find(gameCzar);
 
     for (auto const &x : clients)
     {
@@ -500,7 +492,6 @@ void Game::newRound()
                         }
                     }
                 }
-                // TODO zapamiętać jaką kartę dodaje i wysłać clientowi
                 x.second->addCard(whiteCardIndex);
                 addedCards.push_back(whiteCardIndex);
             }
@@ -520,7 +511,7 @@ void Game::newRound()
 }
 
 void Game::clientGetReady(int source, std::string arguments)
-{ // TODO dawać register i clear event
+{
     auto client = clients.find(source);
     std::cout << "Gracz ID " << source << " " << client->second->getNickname() << " jest gotowy z odpowiedzami" << std::endl;
     while (arguments.size() > 0)
@@ -612,7 +603,7 @@ void Game::startSummary()
 
 void Game::pickAnswerSet(int source, std::string arguments)
 {
-    std::string winnerNickname = deserializeString(arguments); //! Jak ktoś się połączony znowu/odłączy to zmieni mu się id TODO
+    std::string winnerNickname = deserializeString(arguments);
     for (auto const &client : clients)
     {
         if ((client.second->getStatus() == Client::status::LOST or client.second->getStatus() == Client::status::OK) and client.second->getNickname() == winnerNickname)
