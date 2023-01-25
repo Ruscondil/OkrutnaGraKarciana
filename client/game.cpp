@@ -166,6 +166,11 @@ void Game::setNickname(std::string nickname)
             return;
         }
     }
+    if (nickname.length() > 15)
+    {
+        error(0, 0, "Nick nie może mieć więcej niż 15 znaków");
+        return;
+    }
     // Spradzanie czy nick nie jest zajęty
     if (players.find(nickname) != players.end())
     {
