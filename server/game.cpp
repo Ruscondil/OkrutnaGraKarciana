@@ -133,7 +133,7 @@ void Game::handleEvent(uint32_t events, int source)
     {
         char buffer[1024] = "";
 
-        ssize_t count = read(source, buffer, 1024);
+        ssize_t count = recv(source, buffer, 1024, 0);
         if (count > 0)
         {
             std::string s_buffer;
