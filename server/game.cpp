@@ -167,7 +167,6 @@ void Game::handleEvent(uint32_t events, int source)
         }
         else
         {
-            events |= EPOLLERR;
             lostClient(source);
         }
     }
