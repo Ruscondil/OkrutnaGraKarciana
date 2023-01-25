@@ -66,10 +66,10 @@ void Game::loadSettings()
     if (!file)
     {
         std::ofstream newfile("settings.conf");
-        newfile << "roundTimeSeconds = 90" << std::endl;
+        // newfile << "roundTimeSeconds = 90" << std::endl;
         newfile << "cardsOnHand = 6" << std::endl;
         newfile << "pointsToWin = 3" << std::endl;
-        newfile << "blankCardCount = 5" << std::endl;
+        // newfile << "blankCardCount = 5" << std::endl;
         newfile << "cardSets = 6" << std::endl;
         newfile.close();
         _settings.roundTimeSeconds = 90;
@@ -83,25 +83,44 @@ void Game::loadSettings()
         std::string line;
         while (getline(file, line))
         {
-            if (line.find("roundTimeSeconds") != std::string::npos)
-            {
-                _settings.roundTimeSeconds = std::stoi(line.substr(line.find("=") + 2));
-            }
-            else if (line.find("cardsOnHand") != std::string::npos)
+            /*  if (line.find("roundTimeSeconds") != std::string::npos)
+             {
+                 _settings.roundTimeSeconds = std::stoi(line.substr(line.find("=") + 2));
+             }
+             else */
+            if (line.find("cardsOnHand") != std::string::npos)
             {
                 _settings.cardsOnHand = std::stoi(line.substr(line.find("=") + 2));
+                if (_settings.cardsOnHand < 3 or _settings.cardsOnHand > 10)
+                {
+                    std::cout << "Niepoprawna wartość cardsOnHand, ustawiam domyślną" << std::endl;
+                    _settings.cardsOnHand = 7;
+                }
             }
             else if (line.find("pointsToWin") != std::string::npos)
             {
+
                 _settings.pointsToWin = std::stoi(line.substr(line.find("=") + 2));
+                if (_settings.pointsToWin <= 0 or _settings.pointsToWin > 10)
+                {
+                    std::cout << "Niepoprawna wartość pointsToWin, ustawiam domyślną" << std::endl;
+                    _settings.pointsToWin = 3;
+                }
             }
+            /*
             else if (line.find("blankCardCount") != std::string::npos)
             {
                 _settings.blankCardCount = std::stoi(line.substr(line.find("=") + 2));
             }
+            */
             else if (line.find("cardSets") != std::string::npos)
             {
                 _settings.cardSets = std::stoi(line.substr(line.find("=") + 2));
+                if (_settings.cardSets <= 0 or _settings.cardSets > 7)
+                {
+                    std::cout << "Niepoprawna wartość cardSets, ustawiam domyślną" << std::endl;
+                    _settings.cardSets = 6;
+                }
             }
         }
     }
