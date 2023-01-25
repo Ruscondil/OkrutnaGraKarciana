@@ -338,10 +338,10 @@ void Game::setPlayerNickname(int source, std::string arguments)
             if (x.second->getStatus() == Client::status::LOST)
             {
                 std::cout << "Gracz ID " << source << " zostaje przywrócony do gry." << std::endl;
-                returnedPlayer(source);
                 delete client->second;
                 clients.erase(client);
                 client = changeClientId(x.first, source);
+                returnedPlayer(source);
                 recoverClient = true;
             }
             else
@@ -383,7 +383,67 @@ void Game::setPlayerNickname(int source, std::string arguments)
 
 void Game::returnedPlayer(int source)
 {
-    // TODO
+    auto client = clients.find(source);
+    std::string nicknames;
+    client->second->setStatus(Client::status::OK);
+    for (auto const &x : clients)
+    {
+        if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
+        {
+            nicknames += serializeString(x.second->getNickname());
+        }
+    }
+    client->second->TriggerClientEvent("setPlayers", nicknames);
+    if (gameStatus == ROUND)
+    {
+        std::string blackCard = cardIntoString(calls[blackCardIndex]);
+
+        auto czar = clients.find(gameCzar);
+
+        std::string arg = serializeInt(false) + serializeInt(_settings.roundTimeSeconds) + serializeString(czar->second->getNickname());
+        arg += serializeInt(getCallGaps(calls[blackCardIndex])) + serializeString(blackCard);
+        auto clientCards = client->second->getCards();
+        for (int clientCard : clientCards)
+        {
+            arg += serializeInt(clientCard) + serializeString(responses[clientCard]);
+        }
+        client->second->TriggerClientEvent("startRound", arg);
+    }
+    else if (gameStatus == ROUNDSUM)
+    {
+        std::string blackCard = cardIntoString(calls[blackCardIndex]);
+
+        auto czar = clients.find(gameCzar);
+
+        std::string arg = serializeInt(true) + serializeInt(_settings.roundTimeSeconds) + serializeString(czar->second->getNickname());
+        arg += serializeInt(getCallGaps(calls[blackCardIndex])) + serializeString(blackCard);
+        auto clientCards = client->second->getCards();
+        for (int clientCard : clientCards)
+        {
+            arg += serializeInt(clientCard) + serializeString(responses[clientCard]);
+        }
+        client->second->TriggerClientEvent("startRound", arg);
+
+        std::string message;
+        message += serializeInt(getCallGaps(calls[blackCardIndex]));
+        for (auto const &x : clients)
+        {
+            if ((x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST) and x.second->pickedCardsCount() > 0)
+            {
+                auto karty = x.second->getPickedCards();
+                message += serializeString(x.second->getNickname());
+
+                for (int i = static_cast<int>(karty.size()) - 1; i >= 0; i--)
+                {
+                    message += serializeString(responses[karty[i]]);
+                }
+            }
+        }
+        if (message.size() > 0)
+        {
+            client->second->TriggerClientEvent("receiveAnswers", message);
+        }
+    }
 }
 
 void Game::startGame(int source, std::string arguments)
@@ -496,7 +556,9 @@ void Game::newRound()
 
     for (auto const &x : clients)
     {
+        x.second->setReady(false);
         x.second->clearPickedCards(); // czyszczenie zdobytych kart
+
         if (x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST)
         {
             std::vector<int> addedCards;
@@ -520,7 +582,7 @@ void Game::newRound()
                 x.second->addCard(whiteCardIndex);
                 addedCards.push_back(whiteCardIndex);
             }
-            std::string arg = serializeInt(_settings.roundTimeSeconds) + serializeString(czar->second->getNickname());
+            std::string arg = serializeInt(false) + serializeInt(_settings.roundTimeSeconds) + serializeString(czar->second->getNickname());
             arg += serializeInt(getCallGaps(calls[blackCardIndex])) + serializeString(blackCard);
             for (int addedCard : addedCards)
             {
@@ -542,7 +604,7 @@ void Game::clientGetReady(int source, std::string arguments)
     {
         int cardID = deserializeInt(arguments);
 
-        if (!client->second->pickCard(cardID)) // TODO odwrotnie są karty
+        if (!client->second->pickCard(cardID))
         {
             error(1, 0, "Gracz ID %i próbuję wykorzystać kartę, której nie posiada", source);
             return;
@@ -592,7 +654,8 @@ void Game::timerDone()
 void Game::startSummary()
 {
     gameStatus = ROUNDSUM;
-    std::string message; 
+    std::string message;
+    message += serializeInt(getCallGaps(calls[blackCardIndex]));
     for (auto const &x : clients)
     {
         if ((x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST) and x.second->pickedCardsCount() > 0)

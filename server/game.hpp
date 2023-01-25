@@ -27,6 +27,7 @@ private:
     settings _settings;
     std::map<int, Client *> clients;
     int gameCzar;
+    int blackCardIndex;
     enum status
     {
         LOBBY = 0,

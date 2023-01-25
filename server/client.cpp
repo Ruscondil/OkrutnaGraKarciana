@@ -72,7 +72,10 @@ Client::status Client::getStatus() const
 {
     return _clientStatus;
 }
-
+std::set<int> Client::getCards()
+{
+    return cardsID;
+}
 void Client::addCard(int id)
 {
     cardsID.insert(id);

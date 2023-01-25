@@ -34,6 +34,7 @@ public:
     void setStatus(status);
     status getStatus() const;
 
+    std::set<int> getCards();
     void addCard(int id);
     void deleteCard(int id);
     int getCardsCount();

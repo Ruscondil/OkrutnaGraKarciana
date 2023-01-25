@@ -278,7 +278,7 @@ void Game::startRound(std::string buffer)
     {
         x.second->deletePickedCards();
     }
-
+    bool isRecovered = deserializeInt(buffer);
     _gameClock = deserializeInt(buffer);
     _cardCzar = deserializeString(buffer);
     _isCardCzar = (_cardCzar == _nickname);
@@ -292,10 +292,13 @@ void Game::startRound(std::string buffer)
         std::string card = deserializeString(buffer);
         addCard(make_pair(cardID, card));
     }
-    showGame();
-    if (!_isCardCzar)
+    if (!isRecovered)
     {
-        setInputCallack(std::bind(&Game::getReady, this, std::placeholders::_1), "Wybierz " + std::to_string(_cardsCountToPick) + " kart po indexie");
+        showGame();
+        if (!_isCardCzar)
+        {
+            setInputCallack(std::bind(&Game::getReady, this, std::placeholders::_1), "Wybierz " + std::to_string(_cardsCountToPick) + " kart po indexie");
+        }
     }
 }
 
@@ -378,6 +381,7 @@ void Game::showAnswers()
 
 void Game::receiveAnswers(std::string buffer)
 {
+    int answersCound = deserializeInt(buffer);
     while (buffer.size() > 0)
     {
         std::string nickname = deserializeString(buffer);
@@ -385,7 +389,7 @@ void Game::receiveAnswers(std::string buffer)
         if (cardOwner != players.end())
         {
             addSummaryPlayer(nickname);
-            for (int i = 0; i < _cardsCountToPick; i++)
+            for (int i = 0; i < answersCound; i++)
             {
                 std::string answer = deserializeString(buffer);
                 cardOwner->second->addPickedCard(answer);
