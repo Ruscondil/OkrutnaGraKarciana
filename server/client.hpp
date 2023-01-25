@@ -2,8 +2,9 @@
 
 #include "handler.hpp"
 #include <sys/epoll.h>
-
+#include <string>
 #include <set>
+#include <vector>
 
 class Client : private Handler
 {

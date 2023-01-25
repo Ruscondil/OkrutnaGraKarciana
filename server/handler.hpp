@@ -2,6 +2,7 @@
 
 #include <map>
 #include <functional>
+#include <string>
 
 typedef std::function<void(int, std::string)> EventFunction;
 
