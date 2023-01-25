@@ -559,7 +559,7 @@ void Game::checkIfEveryoneReady()
     bool everyoneReady = true;
     for (auto const &c : clients)
     {
-        if ((c.second->getStatus() == Client::status::OK and (!c.first) == gameCzar) and !c.second->getReady())
+        if (c.second->getStatus() == Client::status::OK and !(c.first == gameCzar) and !c.second->getReady())
         {
             everyoneReady = false;
             break;

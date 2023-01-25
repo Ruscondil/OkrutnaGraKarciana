@@ -15,7 +15,7 @@
 #include <iostream>
 #include <cstring>
 
-Client::Client(int fd) : _fd(fd), _clientStatus(NOTAUTH), _nickname(""), _score(0) {}
+Client::Client(int fd) : _fd(fd), _clientStatus(NOTAUTH), _nickname(""), _isReady(false), _score(0) {}
 
 int Client::fd() const { return _fd; }
 
