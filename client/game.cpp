@@ -11,7 +11,7 @@
 #include <vector>
 #include <sstream>
 
-void printText(std::string text) // TODO usunać
+void printText(std::string text) // For testing
 {
     for (char c : text)
     {
@@ -365,7 +365,7 @@ void Game::showAnswers()
     {
         auto x = players.find(sum[i]);
         std::vector<std::string> playerPicks = x->second->getPickedCards();
-        if (playerPicks.size() > 0) // TODO zmienić na funkcje
+        if (playerPicks.size() > 0)
         {
             std::cout << "Gracz nr " << i + 1 << std::endl;
             for (int i = 0; i < static_cast<int>(playerPicks.size()); i++)
@@ -388,7 +388,7 @@ void Game::receiveAnswers(std::string buffer)
             for (int i = 0; i < _cardsCountToPick; i++)
             {
                 std::string answer = deserializeString(buffer);
-                cardOwner->second->addPickedCard(answer); // TODO zmienić na funkcję
+                cardOwner->second->addPickedCard(answer);
             }
         }
         else
@@ -425,8 +425,7 @@ void Game::pickAnswer(std::string buffer)
         auto winner = players.find(winnerNick);
         if (winner != players.end())
         {
-            //! TODO zrobić by nie usuwać rzeczy z queue
-            if (winner->second->getPickedCardsCount() > 0) // TODO zmienić na funkcje
+            if (winner->second->getPickedCardsCount() > 0)
             {
                 TriggerServerEvent("pickAnswerSet", serializeString(winnerNick));
                 setInputCallack();

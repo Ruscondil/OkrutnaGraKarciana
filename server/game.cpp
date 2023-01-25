@@ -478,7 +478,7 @@ void Game::newRound()
     gameStatus = ROUND;
     std::cout << "\n--------------NEW ROUND---------------" << std::endl;
     std::srand(unsigned(std::time(nullptr)));
-    int blackCardIndex = std::rand() % calls.size(); // TODO dodać blank cardy
+    blackCardIndex = std::rand() % calls.size();
     std::string blackCard = cardIntoString(calls[blackCardIndex]);
     std::cout << "Blanks: " << getCallGaps(calls[blackCardIndex]) << " Call: " << blackCard << std::endl;
     gameCzar = newCardCzar(gameCzar);
@@ -592,7 +592,7 @@ void Game::timerDone()
 void Game::startSummary()
 {
     gameStatus = ROUNDSUM;
-    std::string message; // TODO może zrobić zapamiętywanie wygenerowanej wiadomości?
+    std::string message; 
     for (auto const &x : clients)
     {
         if ((x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST) and x.second->pickedCardsCount() > 0)
@@ -639,7 +639,6 @@ void Game::pickAnswerSet(int source, std::string arguments)
             {
                 std::cout << "Gracz ID " << client.first << " " << winnerNickname << " zwyciężył grę" << std::endl;
                 sendToAll("info", serializeString("Grę zwyciężył gracz o nicku " + winnerNickname));
-                // todo Zrobić jakieś zakończenie czy coś
             }
             else
             {

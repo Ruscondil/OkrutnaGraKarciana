@@ -41,7 +41,7 @@ public:
             game.newClient(clientFd);
 
             epoll_event ee{EPOLLIN | EPOLLRDHUP, {.u64 = static_cast<uint64_t>(clientFd)}};
-            epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &ee); // TODO naprawić
+            epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &ee);
         }
         if (events & ~EPOLLIN)
         {
