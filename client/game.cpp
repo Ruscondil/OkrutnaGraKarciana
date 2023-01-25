@@ -273,6 +273,7 @@ void Game::showGame()
 
 void Game::startRound(std::string buffer)
 {
+    deleteSummaryPlayers();
     for (auto const &x : players)
     {
         x.second->deletePickedCards();
@@ -359,12 +360,14 @@ void Game::getReady(std::string buffer)
 
 void Game::showAnswers()
 {
-    for (auto const &x : players)
+    auto sum = getSummaryPlayers();
+    for (int i = 0; i < static_cast<int>(sum.size()); i++)
     {
-        std::vector<std::string> playerPicks = x.second->getPickedCards();
+        auto x = players.find(sum[i]);
+        std::vector<std::string> playerPicks = x->second->getPickedCards();
         if (playerPicks.size() > 0) // TODO zmienić na funkcje
         {
-            std::cout << "Gracz " << x.first << std::endl;
+            std::cout << "Gracz nr " << i + 1 << std::endl;
             for (int i = 0; i < static_cast<int>(playerPicks.size()); i++)
             {
                 std::cout << i + 1 << ". " << playerPicks[i] << std::endl;
@@ -381,6 +384,7 @@ void Game::receiveAnswers(std::string buffer)
         auto cardOwner = players.find(nickname);
         if (cardOwner != players.end())
         {
+            addSummaryPlayer(nickname);
             for (int i = 0; i < _cardsCountToPick; i++)
             {
                 std::string answer = deserializeString(buffer);
@@ -390,10 +394,6 @@ void Game::receiveAnswers(std::string buffer)
         else
         {
             error(0, 0, "Błąd przy wczytywaniu odpowiedzi. Brak gracza %s", nickname.c_str());
-            for (int i = 0; i < _cardsCountToPick; i++)
-            {
-                deserializeString(buffer);
-            }
             return;
         }
     }
@@ -412,13 +412,23 @@ void Game::pickAnswer(std::string buffer)
 {
     if (_isCardCzar)
     {
-        auto winner = players.find(buffer);
+        std::stringstream ss(buffer);
+        int winnerID;
+        ss >> winnerID;
+        winnerID -= 1;
+        if (!isInSummaryPlayers(winnerID))
+        {
+            std::cout << "Wybierz poprawnego gracza" << std::endl;
+            return;
+        }
+        std::string winnerNick = getSummaryPlayer(winnerID);
+        auto winner = players.find(winnerNick);
         if (winner != players.end())
         {
             //! TODO zrobić by nie usuwać rzeczy z queue
             if (winner->second->getPickedCardsCount() > 0) // TODO zmienić na funkcje
             {
-                TriggerServerEvent("pickAnswerSet", serializeString(buffer));
+                TriggerServerEvent("pickAnswerSet", serializeString(winnerNick));
                 setInputCallack();
                 return;
             }
@@ -479,4 +489,33 @@ void Game::player::deletePickedCards()
 int Game::player::getPickedCardsCount()
 {
     return cardsPicked.size();
+}
+
+void Game::addSummaryPlayer(std::string nickname)
+{
+    playersInSummary.push_back(nickname);
+}
+
+void Game::deleteSummaryPlayers()
+{
+    playersInSummary.clear();
+}
+
+bool Game::isInSummaryPlayers(int id)
+{
+    if (id < 0 or id >= static_cast<int>(playersInSummary.size()))
+    {
+        return false;
+    }
+    return true;
+}
+
+std::string Game::getSummaryPlayer(int id)
+{
+    return playersInSummary[id];
+}
+
+std::vector<std::string> Game::getSummaryPlayers()
+{
+    return playersInSummary;
 }

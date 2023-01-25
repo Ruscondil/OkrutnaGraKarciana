@@ -30,7 +30,7 @@ private:
 
     std::string blackCard;
     int _cardsCountToPick;
-    std::vector<std::pair<int, std::string>> cards;
+
     struct player
     {
         player();
@@ -43,6 +43,7 @@ private:
         void deletePickedCards();
         int getPickedCardsCount();
     };
+    std::map<std::string, player *> players;
 
     void beginClientConnection(std::string buffer);
     void showNicknameChoice(std::string buffer);
@@ -58,21 +59,28 @@ private:
     void pickAnswer(std::string buffer);
     void showGame();
 
+    InputFunction inputCallback;
     void setInputCallack(InputFunction, std::string);
     void setInputCallack(InputFunction);
     void setInputCallack();
 
+    std::vector<std::pair<int, std::string>> cards;
     void addCard(std::pair<int, std::string>);
     int getCardsCount();
     void deleteCard(int index);
+
+    std::vector<std::string> playersInSummary;
+    void addSummaryPlayer(std::string nickname);
+    std::vector<std::string> getSummaryPlayers();
+    bool isInSummaryPlayers(int id);
+    std::string getSummaryPlayer(int id);
+    void deleteSummaryPlayers();
 
     void showAnswers();
 
     void info(std::string);
 
-    std::map<std::string, player *> players;
     settings _settings;
-    InputFunction inputCallback;
 
 public:
     Game();
