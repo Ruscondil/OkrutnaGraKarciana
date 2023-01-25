@@ -15,11 +15,12 @@ bool Handler::TriggerEvent(int reciverFd, std::string const eventName, std::stri
         arguments = "\r";
     }
     message = eventName + arguments + '\t';
+
     int count = message.length();
 
-    char test[1024];
-    memcpy(test, message.data(), message.size());
-    return count != ::write(reciverFd, test, count);
+    char char_message[1024];
+    memcpy(char_message, message.data(), message.size());
+    return count != ::write(reciverFd, char_message, count);
 }
 
 void Handler::registerNetEvent(std::string eventName, EventFunction callback)
