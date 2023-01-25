@@ -2,10 +2,10 @@
 #include "connection.hpp"
 #include "handler.hpp"
 
+#include <string>
 #include <map>
 #include <vector>
 #include <utility>
-#include <queue>
 
 typedef std::function<void(std::string)> InputFunction;
 

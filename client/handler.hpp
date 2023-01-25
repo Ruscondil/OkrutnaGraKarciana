@@ -2,7 +2,7 @@
 
 #include <map>
 #include <functional>
-
+#include <string>
 typedef std::function<void(std::string)> EventFunction;
 
 class Handler
