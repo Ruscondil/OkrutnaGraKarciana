@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         error(1, 0, "Need 1 arg (port)");
-    } // TODO dodać default port
+    }
 
     signal(SIGINT, ctrl_c); // Przechwycenie ctrl+c
     signal(SIGPIPE, SIG_IGN);

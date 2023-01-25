@@ -15,7 +15,7 @@
 #include <vector>
 #include <fstream>
 
-void printText(std::string text) // TODO usunać
+void printText(std::string text) // For testing
 {
     for (char c : text)
     {
@@ -186,7 +186,7 @@ Game::Game() : gameStatus(LOBBY)
 void Game::lostClient(int source)
 {
     auto client = clients.find(source);
-    std::cout << "Stracono połączenie z graczem ID " << std::endl;
+    std::cout << "Stracono połączenie z graczem ID " << source << std::endl;
     if (client != clients.end())
     {
         if (gameStatus != LOBBY and client->second->getStatus() != Client::status::NOTAUTH and client->second->getStatus() != Client::status::NONICKNAME)
