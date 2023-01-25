@@ -3,7 +3,6 @@
 #include "handler.hpp"
 #include <sys/epoll.h>
 
-#include <queue>
 #include <set>
 
 class Client : private Handler
@@ -45,7 +44,7 @@ public:
 
     bool pickCard(int);
     void clearPickedCards();
-    int popPickedCard();
+    std::vector<int> getPickedCards();
     int pickedCardsCount();
 
 private:
@@ -56,5 +55,5 @@ private:
     bool _isReady;
     int _score;
     std::set<int> cardsID;
-    std::queue<int> cardsIDPicked;
+    std::vector<int> cardsIDPicked;
 };

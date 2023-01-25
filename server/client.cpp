@@ -107,28 +107,18 @@ bool Client::pickCard(int id)
     }
     else
     {
-        cardsIDPicked.push(id);
+        cardsIDPicked.push_back(id);
         return true;
     }
 }
 void Client::clearPickedCards()
 {
-    while (!cardsIDPicked.empty())
-    {
-        cardsIDPicked.pop();
-    }
+    cardsIDPicked.clear();
 }
 
-int Client::popPickedCard()
+std::vector<int> Client::getPickedCards()
 {
-    if (!cardsIDPicked.empty())
-    {
-        int card = cardsIDPicked.front();
-        cardsIDPicked.pop();
-        return card;
-    }
-    else
-        return -1;
+    return cardsIDPicked;
 }
 
 int Client::pickedCardsCount()
