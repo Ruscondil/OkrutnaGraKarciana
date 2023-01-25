@@ -344,7 +344,7 @@ void Game::getReady(std::string buffer)
         message += serializeInt(cards[result[i]].first);
     }
     std::sort(result.begin(), result.end());
-    for (int i = static_cast<int>(result.size()); i >= 0; i--)
+    for (int i = static_cast<int>(result.size()) - 1; i >= 0; i--)
     {
         deleteCard(result[i]);
     }
@@ -379,7 +379,6 @@ void Game::receiveAnswers(std::string buffer)
             for (int i = 0; i < _cardsCountToPick; i++)
             {
                 std::string answer = deserializeString(buffer);
-                std::cout << "TEST " << answer << std::endl;
                 cardOwner->second->addPickedCard(answer); // TODO zmienić na funkcję
             }
         }

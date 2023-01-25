@@ -578,12 +578,12 @@ void Game::startSummary()
     {
         if ((x.second->getStatus() == Client::status::OK or x.second->getStatus() == Client::status::LOST) and x.second->pickedCardsCount() > 0)
         {
+            auto karty = x.second->getPickedCards();
             message += serializeString(x.second->getNickname());
-            int card = x.second->popPickedCard();
-            while (card != -1)
+
+            for (int i = static_cast<int>(karty.size()) - 1; i >= 0; i--)
             {
-                message += serializeString(responses[card]);
-                card = x.second->popPickedCard();
+                message += serializeString(responses[karty[i]]);
             }
         }
     }
@@ -618,7 +618,7 @@ void Game::pickAnswerSet(int source, std::string arguments)
             if (client.second->getScore() >= _settings.pointsToWin)
             {
                 std::cout << "Gracz ID " << client.first << " " << winnerNickname << " zwyciężył grę" << std::endl;
-                sendToAll("info", "Grę zwyciężył" + winnerNickname);
+                sendToAll("info", serializeString("Grę zwyciężył gracz o nicku " + winnerNickname));
                 // todo Zrobić jakieś zakończenie czy coś
             }
             else
