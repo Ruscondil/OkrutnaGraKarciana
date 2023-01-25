@@ -634,6 +634,7 @@ void Game::pickAnswerSet(int source, std::string arguments)
         {
             client.second->setScoreInc(1);
             std::cout << "Gracz ID " << client.first << " " << winnerNickname << " zwyciężył rundę " << std::endl;
+            sendToAll("info", serializeString("Rudnę zwyciężył gracz o nicku " + winnerNickname));
             if (client.second->getScore() >= _settings.pointsToWin)
             {
                 std::cout << "Gracz ID " << client.first << " " << winnerNickname << " zwyciężył grę" << std::endl;
